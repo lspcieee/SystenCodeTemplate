@@ -1,0 +1,228 @@
+﻿<%-- 
+Name: list.aspx.cs.cst
+Author: lspcieee
+Description: 列表页面cs生成
+--%>
+<%@ CodeTemplate Language="C#" Src="..\Helpers\CsNHibernateHelper.cs" Inherits="CsNHibernateHelper"　 ResponseEncoding="UTF-8" TargetLanguage="C#" Debug="False" Description="Generates an editable Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+<%
+TableSchemaCollection ExcludedTables = new TableSchemaCollection();
+EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables);
+    //获取主键名称
+    string primaryKeyName="Id";
+    //Primary Key
+	if(entityManager.PrimaryKey.IsCompositeKey) { 
+
+	} else {
+        primaryKeyName= entityManager.PrimaryKey.KeyColumn.PropertyName;
+	} 
+%>
+using System;
+using System.Collections.Generic;
+using System.Web.UI.WebControls;
+using <%= this.EntitiesNamespace %>;
+using <%= this.IServiceNamespace %>;
+using KDSoft.KDCMS.Util.Ext;
+using NHibernate.Criterion;
+
+public partial class <%= GetTableClassName(SourceTable) %>List : ManagePageBase
+{   
+    #region 服务
+        
+    /// <summary>
+    /// <%= SourceTable.Description %>操作对象
+    /// </summary>
+    public I<%= GetTableClassName(SourceTable) %>Service <%= GetTableClassName(SourceTable) %>Service { get; set; }
+
+    #endregion
+    
+    protected void Page_Load(object sender, EventArgs e)
+    {
+
+        if (!Page.IsPostBack)
+        {
+            InitData();
+            LoadData();
+        }
+    }
+
+    #region 初始化
+    /// <summary>
+    /// 初始化数据.
+    /// </summary>
+    private void InitData()
+    {
+        //加载header引用文件
+        RegisterHeaderFile("colorbox", "poshytip", "list");
+        //RegisterHeaderFileByModule("Core.WebsiteMenuEdit", GetService<CoreModule>());
+        
+        //加载下拉框数据
+
+
+        //自动加载查询条件
+        phSearch.LoadSearchCondition("search", "<%= GetTableClassName(SourceTable) %>AspNetPager");
+
+    }
+
+    #endregion
+
+    #region 加载列表数据
+    /// <summary>
+    /// 加载列表数据.
+    /// </summary>
+    private void LoadData()
+    {
+        int amount = 0;
+        <%= GetTableClassName(SourceTable) %>AspNetPager.PageSize = 10;
+        int pageSize = <%= GetTableClassName(SourceTable) %>AspNetPager.PageSize;
+        int pageNumber = <%= GetTableClassName(SourceTable) %>AspNetPager.CurrentPageIndex;
+        var criterionList = new List<ICriterion>();
+
+        #region 构造条件
+        <%-- 根据数据库中的标记生成对应要搜索的字段--%>
+        <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+            if(DescriptionContains(em,"[search]")){
+        %>
+        //<%=GetDescription(em) %>
+        if (!string.IsNullOrEmpty(search<%= em.PropertyName %>.Text.Trim()))
+        {
+            ICriterion <%=ToProperCase( em.PropertyName) %>Criterion = Restrictions.Like(<%= GetTableClassName(SourceTable) %>.ColumnNames.<%= em.PropertyName %>, string.Format("%{0}%", search<%= em.PropertyName %>.Text.Trim()));
+
+            criterionList.Add(<%=ToProperCase( em.PropertyName) %>Criterion);
+        }
+        <% 
+            }
+        } %>
+        
+        <%--//如果有逻辑删除，加上逻辑删除的条件--%>
+        <%
+        if(HasLogicDeleteEntityMember(entityManager)){
+        %>
+        //过滤已经删除的
+        ICriterion isDeletedCriterion = Restrictions.Eq(<%= GetTableClassName(SourceTable) %>.ColumnNames.IsDeleted, false);
+        criterionList.Add(isDeletedCriterion);
+        <%    
+        }
+        %>
+        #region 条件添加示例
+
+        //linq的方式添加条件
+        //ICriterion equalCriterion1 = Restrictions.Where<<%= GetTableClassName(SourceTable) %>>(d => d.ParentName == "上级部门名称");
+        //criterionList.Add(equalCriterion1);
+
+        //另外一种添加方式
+        //criterionList.Add(new LikeExpression(<%= GetTableClassName(SourceTable) %>.ColumnNames.Name, "部门名称"));
+
+        #endregion
+
+        #endregion
+        
+        //排序
+        Order order = Order.Asc(<%= GetTableClassName(SourceTable) %>.ColumnNames.<%=primaryKeyName%>);
+
+        var list = <%= GetTableClassName(SourceTable) %>Service.GetPagedList(pageSize, pageNumber, criterionList, order, ref amount);
+
+        rp<%= GetTableClassName(SourceTable) %>.DataSource = list;
+        rp<%= GetTableClassName(SourceTable) %>.DataBind();
+        <%= GetTableClassName(SourceTable) %>AspNetPager.RecordCount = amount;
+    }
+
+    /// <summary>
+    /// 列表翻页事件.
+    /// </summary>
+    /// <param name="sender">The source of the event.</param>
+    /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+    protected void <%= GetTableClassName(SourceTable) %>AspNetPager_PageChanged(object sender, EventArgs e)
+    {
+        LoadData();
+        //保存查询条件
+        phSearch.PersistSearchCondition("search", "<%= GetTableClassName(SourceTable) %>AspNetPager");
+    }
+
+    /// <summary>
+    /// 按条件检索数据.
+    /// </summary>
+    /// <param name="sender">The source of the event.</param>
+    /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+    protected void btnSearch_Click(object sender, EventArgs e)
+    {
+        <%= GetTableClassName(SourceTable) %>AspNetPager.CurrentPageIndex = 1;
+        LoadData();
+        //保存查询条件
+        phSearch.PersistSearchCondition("search", "<%= GetTableClassName(SourceTable) %>AspNetPager");
+    }
+    #endregion
+
+    #region 添加 删除 数据
+
+
+    /// <summary>
+    /// 删除数据项
+    /// </summary>
+    /// <param name="sender">The source of the event.</param>
+    /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+    protected void btnDelete_Click(object sender, EventArgs e)
+    {
+        var ids = rp<%= GetTableClassName(SourceTable) %>.GetSelectedIDs();
+        if (ids != null && ids.Count > 0)
+        {
+            <%
+            if(HasLogicDeleteEntityMember(entityManager)){
+            %>
+            //逻辑删除
+            <%= GetTableClassName(SourceTable) %>Service.BatchLogicDelete(ids);
+            <%    
+            }
+            else{%>
+            //直接删除
+            <%= GetTableClassName(SourceTable) %>Service.BatchDelete(ids);
+            <%}
+            %>
+            Success("删除成功");
+            LoadData();
+        }
+    }
+    #endregion
+
+    #region 列表处理 查看，修改，删除
+    /// <summary>
+    /// 处理列表事件.
+    /// </summary>
+    /// <param name="source">The source of the event.</param>
+    /// <param name="e">The <see cref="System.Web.UI.WebControls.RepeaterCommandEventArgs"/> instance containing the event data.</param>
+    protected void rp<%= GetTableClassName(SourceTable) %>_ItemCommand(object source, RepeaterCommandEventArgs e)
+    {
+        int id = int.Parse(e.CommandArgument.ToString());
+        if (e.CommandName == "Delete")
+        {
+            <%
+            if(HasLogicDeleteEntityMember(entityManager)){
+            %>
+            //逻辑删除
+            <%= GetTableClassName(SourceTable) %>Service.LogicDelete(id);
+            <%    
+            }
+            else{%>
+            //直接删除
+            <%= GetTableClassName(SourceTable) %>Service.Delete(id);
+            <%}
+            %>
+            //成功消息提示
+            Success("删除成功！");
+            LoadData();
+        }
+    }
+    #endregion
+}

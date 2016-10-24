@@ -1,0 +1,258 @@
+﻿<%-- 
+Name: Form.cs.cst
+Author: lspcieee
+Description: 编辑窗体生成
+--%>
+<%@ CodeTemplate Language="C#" Src="..\Helpers\CsNHibernateHelper.cs" Inherits="CsNHibernateHelper"　 ResponseEncoding="UTF-8" TargetLanguage="C#" Debug="False" Description="Generates an editable Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="2. 程序集" Description="模块程序集名称" %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+<%
+TableSchemaCollection ExcludedTables = new TableSchemaCollection();
+EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables);
+    //获取主键名称
+    string primaryKeyName="Id";
+    //Primary Key
+	if(entityManager.PrimaryKey.IsCompositeKey) { 
+
+	} else {
+        primaryKeyName= entityManager.PrimaryKey.KeyColumn.PropertyName;
+	} 
+%>
+namespace <%=AssemblyName%>.Manage
+{
+    partial class <%= GetTableClassName(SourceTable) %>EditForm
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.Cancel = new KDSoft.Core.Winform.UserControls.CancelButton();
+            this.Save = new KDSoft.Core.Winform.UserControls.SaveButton();
+            this.groupBoxEdit = new System.Windows.Forms.GroupBox();
+
+<% 
+//InitializeComponent方法内容
+var formColCount=2;//窗体上显示几列
+
+if(SourceTable.Columns.Count>18){
+    formColCount=3;
+}
+else if(SourceTable.Columns.Count<=9){
+    formColCount=1;
+}
+int keyMemberCount=0;     
+for(int k=0; k<SourceTable.Columns.Count; k++) { 
+       
+        if(SourceTable.Columns[k].IsPrimaryKeyMember||SourceTable.Columns[k].IsForeignKeyMember){
+               keyMemberCount++;
+                
+                continue;
+        }
+        
+        string columnName= SourceTable.Columns[k].Name ;
+        string columnDescription= SourceTable.Columns[k].Description;
+        var number=k+1-keyMemberCount;
+        int row=(number-1)/formColCount;
+        //Alert(keyMemberCount.ToString()+"\n k:"+k.ToString()+"\n Row"+row.ToString()+"\n formColCount"+formColCount.ToString());
+        var labelX=25;
+        var labelY=45+(55*row);
+        var textX=80;
+        var textY=40+(55*row);
+        var textWidth=185;
+        
+         if(formColCount==1){
+                labelX=25;
+                textX=80;
+         }
+        else if(formColCount==2){
+            if(number%formColCount==1){
+                labelX=15;
+                textX=90;
+            }
+            else if(number%formColCount==0){
+                labelX=415;
+                textX=505;
+            }
+        }
+        else if(formColCount==3){ 
+            if(number%formColCount==1){
+                labelX=25;
+                textX=100;
+            }
+            else if(number%formColCount==2){
+                labelX=265;
+                textX=340;
+            }
+            else if(number%formColCount==0){
+                labelX=495;
+                textX=570;
+            }
+            textWidth=140;
+        }
+%>
+            //<% =columnDescription %>
+            this.label<%=k+1%> = new System.Windows.Forms.Label();
+            this.fc<% =ToPascalCase(columnName) %> = new System.Windows.Forms.TextBox();
+
+
+            // 
+            // label<%=k+1%>
+            // 
+            this.label<%=k+1%>.AutoSize = true;
+            this.label<%=k+1%>.Location = new System.Drawing.Point(<%=labelX%>, <%=labelY%>);
+            this.label<%=k+1%>.Name = "label3";
+            this.label<%=k+1%>.Size = new System.Drawing.Size(52, 15);
+            this.label<%=k+1%>.TabIndex = 100;
+            this.label<%=k+1%>.Text = "<% =ClearNote( columnDescription) %>：";
+            
+            // 
+            // fc<% =ToPascalCase(columnName) %>
+            // 
+            this.fc<% =ToPascalCase(columnName) %>.Location = new System.Drawing.Point(<%=textX%>, <%=textY%>);
+            this.fc<% =ToPascalCase(columnName) %>.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.fc<% =ToPascalCase(columnName) %>.Name = "fc<% =ToPascalCase(columnName) %>";
+            this.fc<% =ToPascalCase(columnName) %>.Size = new System.Drawing.Size(<%=textWidth%>, 25);
+            this.fc<% =ToPascalCase(columnName) %>.TabIndex = <%=k+1%>;
+            
+            
+            this.groupBoxEdit.Controls.Add(this.fc<% =ToPascalCase(columnName) %>);
+            this.groupBoxEdit.Controls.Add(this.label<%=k+1%>);
+            
+<% } %>
+
+           
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.fcSttp = new System.Windows.Forms.ComboBox();
+            this.panel2.SuspendLayout();
+            this.groupBoxEdit.SuspendLayout();
+            this.panel1.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // panel2
+            // 
+            this.panel2.Controls.Add(this.Cancel);
+            this.panel2.Controls.Add(this.Save);
+            this.panel2.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panel2.Location = new System.Drawing.Point(0, 663);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(782, 42);
+            this.panel2.TabIndex = 13;
+            // 
+            // Cancel
+            // 
+            this.Cancel.Location = new System.Drawing.Point(453, 4);
+            this.Cancel.Name = "Cancel";
+            this.Cancel.Size = new System.Drawing.Size(75, 28);
+            this.Cancel.TabIndex = 1;
+            this.Cancel.Text = "取消";
+            this.Cancel.UseVisualStyleBackColor = true;
+            this.Cancel.Click += new System.EventHandler(this.Cancel_Click);
+            // 
+            // Save
+            // 
+            this.Save.Location = new System.Drawing.Point(254, 4);
+            this.Save.Name = "Save";
+            this.Save.Size = new System.Drawing.Size(75, 28);
+            this.Save.TabIndex = 0;
+            this.Save.Text = "保存";
+            this.Save.UseVisualStyleBackColor = true;
+            this.Save.Click += new System.EventHandler(this.Save_Click);
+            // 
+            // groupBoxEdit
+            // 
+            
+            this.groupBoxEdit.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBoxEdit.Location = new System.Drawing.Point(10, 10);
+            this.groupBoxEdit.Name = "groupBoxEdit";
+            this.groupBoxEdit.Size = new System.Drawing.Size(762, 643);
+            this.groupBoxEdit.TabIndex = 14;
+            this.groupBoxEdit.TabStop = false;
+            this.groupBoxEdit.Text = "编辑";
+            
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.groupBoxEdit);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel1.Location = new System.Drawing.Point(0, 0);
+            this.panel1.Name = "panel1";
+            this.panel1.Padding = new System.Windows.Forms.Padding(10);
+            this.panel1.Size = new System.Drawing.Size(782, 663);
+            this.panel1.TabIndex = 15;
+          
+            // 
+            // <%= GetTableClassName(SourceTable) %>EditForm
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(782, 705);
+            this.Controls.Add(this.panel1);
+            this.Controls.Add(this.panel2);
+            this.Name = "<%= GetTableClassName(SourceTable) %>EditForm";
+            this.Text = "<%= ClearNote(SourceTable.Description) %>管理";
+            this.panel2.ResumeLayout(false);
+            this.groupBoxEdit.ResumeLayout(false);
+            this.groupBoxEdit.PerformLayout();
+            this.panel1.ResumeLayout(false);
+            this.ResumeLayout(false);
+
+        }
+
+        #endregion
+
+
+
+        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.GroupBox groupBoxEdit;
+        private System.Windows.Forms.Panel panel1;
+        private Core.Winform.UserControls.CancelButton Cancel;
+        private Core.Winform.UserControls.SaveButton Save;
+       <% 
+        //控件声明
+        for(int k=0; k<SourceTable.Columns.Count; k++) { 
+                string columnName= SourceTable.Columns[k].Name ;
+                string columnDescription= SourceTable.Columns[k].Description;
+        %>
+        //<% =columnDescription %>
+        private System.Windows.Forms.Label label<%=k+1%>;
+        private System.Windows.Forms.TextBox fc<% =ToPascalCase(columnName) %>;
+        <% } %>
+        private System.Windows.Forms.ComboBox fcSttp;
+
+    }
+}

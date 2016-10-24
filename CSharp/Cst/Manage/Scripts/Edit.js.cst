@@ -1,0 +1,46 @@
+﻿<%-- 
+Name: edit.js.cst
+Author: lspcieee
+Description: edit页面js生成
+--%>
+<%@ CodeTemplate Language="C#"　 ResponseEncoding="UTF-8" Inherits="NHibernateHelper" TargetLanguage="js" Debug="False" Description="Generates an editable Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+$load(function () {
+//    // 自定义验证方法
+//    $.validator.addMethod("isZipCode", function (value, element) {
+//        var tel = /^[0-9]{6}$/;
+//        return this.optional(element) || (tel.test(value));
+//    }, "请正确填写邮政编码");
+
+//    var rules = { // 验证规则
+//                ctl00$ContentPlaceHolder1$fcParentName: { // 对应标签Id
+//                    required: true, // 必填项
+//                    minlength: 5, // 不能少于5个字符
+//                    maxlength: 10 // 不能多于10个字符
+//                }
+//    };
+
+//    var messages = { // 验证提示信息
+//        ctl00$ContentPlaceHolder1$fcParentName: {
+//            required: "请输入上级部门名称",
+//            minlength: jQuery.format("上级部门名称不能小于{0}个字符"),
+//            maxlength: jQuery.format("上级部门名称不能大于{0}个字符")
+//        }
+//    };
+//    $validate(rules, messages);
+//    
+//    //另外一种添加方式
+//    $(".fcParentName").rules("add", { email: true, required: true });
+})

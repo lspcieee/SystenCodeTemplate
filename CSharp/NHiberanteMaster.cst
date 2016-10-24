@@ -1,0 +1,799 @@
+﻿<%-- 
+Name: NHiberanteMaster.cst
+Author: lspcieee
+Description: 生成CMS模块入口
+--%>
+<%@ CodeTemplate Language="C#"  ResponseEncoding="UTF-8" Src="Cst\Helpers\CsNHibernateHelper.cs" Inherits="CsNHibernateHelper" TargetLanguage="C#" OutputType="None" Debug="True" Description="Generates a complete set of Maps, Business Objects, Manager Objects, and a ManagerFactory for NHibernate, the adds them to the specified .csproj file." %>
+
+<%@ Property Name="ModuleTables" Type="SchemaExplorer.TableSchemaCollection"  Optional="False" Category="1. 数据库设置" Description="请选择模块所包含的表" Filter="SourceTable"%>
+
+<%@ Property Name="ExcludedColumns" Type="CodeSmith.CustomProperties.StringCollection" Default="" Optional="True" Category="1. 数据库设置" Description="使用正则表达式排除表中的列" %>
+<%@ Property Name="TablePrefix" Type="System.String" Default=""  Optional="False" Category="1. 数据库设置" Description="生成实体时,需要去除的表前缀.（下划线前边的一部分，不包括下划线）" %>
+<%@ Property Name="VersionColumn" Type="System.String" Default="^((R|r)ow)?(V|v)ersion$" Optional="True" Category="1. 数据库设置" Description="获取version字段名称的正则表达式" %>
+
+<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="2. 程序集" Description="模块程序集名称" %>
+
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String"  Default="KDSoft.KDCMS.Modules.XX.Domain" Optional="False" Category="3. 命名空间" Description="实体命名空间" %>
+<%@ Property Name="DatabaseType" Type="DatabaseTypeEnum" Default="SqlServer" Category="4. 方言适配数据库类型" Description="生成castle配置时使用的方言数据库类型" %>
+
+
+<%@ Property Name="ModuleName" Type="System.String" Default="信息发布模块" Optional="False" Category="5. 模块配置" Description="模块中文名称" %>
+<%@ Property Name="ModuleAuthor" Default="KingDon Soft" Category="5. 模块配置" Description="开发者" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="ModuleWebsite" Default="http://www.kingdonsoft.com/" Category="5. 模块配置" Description="开发者网站" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="ModuleDescription" Default="核心模块" Category="5. 模块配置" Description="描述" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="ModuleCategory" Default="Core" Category="5. 模块配置" Description="种类" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="ModuleVersion" Default="1.0.0" Category="5. 模块配置" Description="版本号" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="ModuleClassName" Default="CoreModule" Category="5. 模块配置" Description="模块接口实现类名称" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="PageType" Type="PageTypeEnum" Default="MvcWeb" Category="5. 模块配置" Description="宿主类型，mvc 页面、webFrom  或者 Winform"  %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="Microsoft.Build.Engine" %>
+<%@ Assembly Name="Microsoft.Build.Utilities" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\Common\NHibernateHelper" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import NameSpace="System.IO" %>
+<%@ Import Namespace="CodeSmith.CustomProperties" %>
+
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+
+
+<%@ Register Name="BusinessObjectTemplate" Template="Cst\Entities\BusinessObject.cst" %>
+<%@ Register Name="EditableBusinessObjectTemplate" Template="Cst\Entities\EditableBusinessObject.cst" %>
+<%@ Register Name="HbmMapTemplate" Template="Cst\Mappings\Hbm.cst" %>
+
+<%@ Register Name="ServiceTemplate" Template="Cst\Service\Service.cst" %>
+<%@ Register Name="IServiceTemplate" Template="Cst\Service\IService.cst" %>
+<%@ Register Name="ServiceConfigTemplate" Template="Cst\Service\ServiceConfig.cst" %>
+
+<%@ Register Name="IDialectServiceTemplate" Template="Cst\Service\Dialect\IDialectService.cst" %>
+<%@ Register Name="MySqlServiceTemplate" Template="Cst\Service\Dialect\MySqlService.cst" %>
+<%@ Register Name="OracleServiceTemplate" Template="Cst\Service\Dialect\OracleService.cst" %>
+<%@ Register Name="SqlServerServiceTemplate" Template="Cst\Service\Dialect\SqlServerService.cst" %>
+
+<%@ Register Name="ViewsWebConfigTemplate" Template="Cst\Views\WebConfig.cst" %>
+<%@ Register Name="ViewStartTemplate" Template="Cst\Views\_ViewStart.cshtml.cst" %>
+
+<%@ Register Name="WebConfigTemplate" Template="Cst\WebConfig.cst" %>
+<%@ Register Name="PackagesConfigTemplate" Template="Cst\PackagesConfig.cst" %>
+
+<%@ Register Name="ModuleCsTemplate" Template="Cst\Module.Cs.cst" %>
+<%@ Register Name="ManagePermissionsTemplate" Template="Cst\ManagePermissions.cst" %>
+<%@ Register Name="CsprojTemplate" Template="Cst\csproj.cst" %>
+<%@ Register Name="MvcCsprojtemplate" Template="Cst\mvcCsproj.cst" %>
+<%@ Register Name="ModuleConfigTemplate" Template="Cst\Module.Config.cst" %>
+<%@ Register Name="AssemblyInfoTemplate" Template="Cst\Properties\AssemblyInfo.cst" %>
+
+<%@ Register Name="ListAspxTemplate" Template="Cst\Manage\list.aspx.cst" %>
+<%@ Register Name="ListAspxCsTemplate" Template="Cst\Manage\list.aspx.cs.cst" %>
+
+<%@ Register Name="EditAspxTemplate" Template="Cst\Manage\Edit.aspx.cst" %>
+<%@ Register Name="EditAspxCsTemplate" Template="Cst\Manage\Edit.aspx.cs.cst" %>
+<%@ Register Name="EditJsTemplate" Template="Cst\Manage\Scripts\Edit.Js.cst" %>
+
+<%@ Register Name="DetailAspxTemplate" Template="Cst\Manage\Detail.aspx.cst" %>
+<%@ Register Name="DetailAspxCsTemplate" Template="Cst\Manage\Detail.aspx.cs.cst" %>
+
+<%@ Register Name="ListFormCsTemplate" Template="Cst\Manage_WinForm\Form.cs.cst" %>
+<%@ Register Name="ListFormDesignerCsTemplate" Template="Cst\Manage_WinForm\Form.Designer.cs.cst" %>
+<%@ Register Name="ListFormResxTemplate" Template="Cst\Manage_WinForm\Form.resx.cst" %>
+
+<%@ Register Name="EditFormCsTemplate" Template="Cst\Manage_WinForm\EditForm.cs.cst" %>
+<%@ Register Name="EditFormDesignerCsTemplate" Template="Cst\Manage_WinForm\EditForm.Designer.cs.cst" %>
+<%@ Register Name="EditFormResxTemplate" Template="Cst\Manage_WinForm\EditForm.resx.cst" %>
+
+<%@ Register Name="ListCshtmlTemplate" Template="Cst\Manage_Mvc\list.cshtml.cst" %>
+<%@ Register Name="EditCshtmlTemplate" Template="Cst\Manage_Mvc\Edit.cshtml.cst" %>
+<%@ Register Name="ControllerTemplate" Template="Cst\Manage_Mvc\Controller.cs.cst" %>
+<script runat="template">
+//数据库类型
+public enum DatabaseTypeEnum
+{
+    SqlServer,
+    MySql,
+    Oracle
+}
+//生成页面 类型
+public enum PageTypeEnum{
+    MvcWeb,
+    WebForm,
+    WinForm,
+}
+
+public TableSchemaCollection ExcludedTables;
+public VisualStudioVersion VsVersion=VisualStudioVersion.VS_2008;
+public override void Render(TextWriter writer)
+{
+    
+    ExcludedTables = new TableSchemaCollection();
+    if(ModuleTables==null||ModuleTables.Count<1){
+        Alert("没有选择要生成的表。属性：ModuleTables");
+        return;
+    }
+    if( string.IsNullOrEmpty( this.TablePrefix)){
+        Alert("请设置要清除的表前缀.属性：TablePrefix");
+        return;
+    }
+    string[] excludedColumns = (ExcludedColumns != null) ? ExcludedColumns.ToArray() : new string[0]{};
+	HelperInit(this.TablePrefix, this.SystemCSharp, this.KeyWords, excludedColumns, this.VersionColumn, ModuleTables[0].Database.Provider.Name);
+	
+    foreach(TableSchema table in ModuleTables)
+        if(!ExcludedTables.Contains(table) && !table.HasPrimaryKey)
+        {
+            Alert(
+                String.Format("表 \"{0}\" 没有设置主键,将忽略此表.", table.Name)
+                );
+            ExcludedTables.Add(table);
+        }
+    
+	foreach(TableSchema table in ModuleTables)
+		if(!ExcludedTables.Contains(table))
+		{
+			RenderHbmMaps(table);
+			RenderBusinessObjects(table);
+            RenderService(table);
+            RenderManage(table);
+		}
+	RenderServiceConfig();
+    RenderCsproj();
+	RegisterReferences();
+    RenderManagePermissions();
+    RenderModuleCs();
+    RenderPackagesConfig();
+    RenderWebConfig();
+    RenderViewsWebConfig();
+    RenderViewStart();
+    Alert(string.Format("代码生成完成,\n\n首次生成：请在解决方案'3.1内容模型'或'3.2模块扩展'添加现有项目文件'{0}.csproj'	\n\n不是首次生成：请将新增表对应的Domain，Mappings，Service文件包含到项目'{0}'中，	\n并将Mappings中后缀为'.hbm.xml'的文件'生成操作'设置为'嵌入的资源'。",this.AssemblyName));
+}
+ 
+private void RenderViewsWebConfig()
+{
+       string viewsWebConfigFileName =  @"Views\Web.config";
+     if(!File.Exists(viewsWebConfigFileName)){
+      ViewsWebConfigTemplate csprojTemplateObject = this.Create<ViewsWebConfigTemplate>(); 
+      csprojTemplateObject.FrameworkNamespace=this.FrameworkNamespace;
+      csprojTemplateObject.AssemblyName=this.AssemblyName;
+      csprojTemplateObject.RenderToFile(GetOutputFile(viewsWebConfigFileName, null), true); 
+     }
+     
+} 
+private void RenderViewStart()
+{
+       string viewStartFileName = @"Views\_ViewStart.cshtml";
+     if(!File.Exists(viewStartFileName)){
+      ViewStartTemplate csprojTemplateObject = this.Create<ViewStartTemplate>(); 
+      csprojTemplateObject.RenderToFile(GetOutputFile(viewStartFileName, null), true); 
+     }
+     
+}
+
+private void RenderWebConfig()
+{
+       string webConfigFileName =  "Web.config";
+     if(!File.Exists(webConfigFileName)){
+      WebConfigTemplate csprojTemplateObject = this.Create<WebConfigTemplate>(); 
+      csprojTemplateObject.RenderToFile(GetOutputFile(webConfigFileName, null), true); 
+     }
+     
+}
+private void RenderPackagesConfig()
+{
+       string packagesConfigFileName =  "packages.config";
+     if(!File.Exists(packagesConfigFileName)){
+      PackagesConfigTemplate csprojTemplateObject = this.Create<PackagesConfigTemplate>(); 
+      csprojTemplateObject.RenderToFile(GetOutputFile(packagesConfigFileName, null), true); 
+     }
+     
+}
+
+private void RenderModuleCs()
+{
+         // 生成模块配置文件
+    string moduleConfigFileName = String.Format("{0}Module.cs", GetLastAssemblyName());
+   
+    if(!File.Exists(moduleConfigFileName)){
+        ModuleCsTemplate csprojTemplateObject = this.Create<ModuleCsTemplate>(); 
+            csprojTemplateObject.AssemblyName=this.AssemblyName;
+            csprojTemplateObject.ServiceNamespace = this.ServiceNamespace;
+            csprojTemplateObject.IServiceNamespace = this.IServiceNamespace;
+            csprojTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+            csprojTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+            csprojTemplateObject.ModuleTables = this.ModuleTables;
+            csprojTemplateObject.RenderToFile(GetOutputFile(moduleConfigFileName, null), true); 
+    }
+}
+
+private void RenderManagePermissions()
+{
+     // 生成模块配置文件
+    string moduleConfigFileName = String.Format("{0}ManagePermissions.cs", GetLastAssemblyName());
+        //检测配置文件已存在，则生成.bak文件，手动合并
+    if(File.Exists(moduleConfigFileName)){
+        moduleConfigFileName += ".generated";
+    }
+    //if(!File.Exists(moduleConfigFileName)){
+        ManagePermissionsTemplate csprojTemplateObject = this.Create<ManagePermissionsTemplate>(); 
+            csprojTemplateObject.AssemblyName=this.AssemblyName;
+            csprojTemplateObject.ServiceNamespace = this.ServiceNamespace;
+            csprojTemplateObject.IServiceNamespace = this.IServiceNamespace;
+            csprojTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+            csprojTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+            csprojTemplateObject.ModuleTables = this.ModuleTables;
+            csprojTemplateObject.RenderToFile(GetOutputFile(moduleConfigFileName, null), true); 
+    //}
+}
+
+private void RenderHbmMaps(TableSchema table)
+{
+	string fileName = String.Format("{0}{1}.hbm.xml", GetFolder(@"_generated\Mappings"), GetTableClassName(table));
+	
+	HbmMapTemplate hbmMap = this.Create<HbmMapTemplate>();
+	hbmMap.AssemblyName = this.AssemblyName;
+	hbmMap.EntitiesNamespace = this.EntitiesNamespace;
+    //hbmMap.BaseNamespace = this.BaseNamespace;
+	hbmMap.SourceTable = table;
+	hbmMap.ExcludedTables =this. ExcludedTables;
+	
+	hbmMap.RenderToFile(GetOutputFile(fileName, null), true);
+}
+private void RenderBusinessObjects(TableSchema table)
+{
+	string fileName = String.Format("{0}{1}.generated.cs", GetFolder(@"_generated\Domain"), GetTableClassName(table));
+	string editableFileName = String.Format("{0}{1}.cs", GetFolder(@"Domain"), GetTableClassName(table));
+	
+    //检测是否存在，存在的文件不再生成
+	if(!File.Exists(editableFileName))
+	{
+		EditableBusinessObjectTemplate editableBusinessObject = this.Create<EditableBusinessObjectTemplate>();
+		editableBusinessObject.EntitiesNamespace = this.EntitiesNamespace;
+		
+		editableBusinessObject.SourceTable = table;
+		
+		editableBusinessObject.RenderToFile(GetOutputFile(editableFileName, null), true);
+	}
+	
+	BusinessObjectTemplate businessObject = this.Create<BusinessObjectTemplate>();
+	businessObject.EntitiesNamespace = this.EntitiesNamespace;
+	businessObject.SourceTable = table;
+	businessObject.ExcludedTables = this.ExcludedTables;
+    businessObject.FrameworkNamespace = this.FrameworkNamespace;
+
+	businessObject.RenderToFile(GetOutputFile(fileName, editableFileName), true);
+}
+private void RenderCsproj(){
+    //生成模块配置文件
+    string moduleConfigFileName = String.Format("{0}Module.Config", GetFolder(@""));
+    if(!File.Exists(moduleConfigFileName)){
+        ModuleConfigTemplate moduleConfigTemplateObject = this.Create<ModuleConfigTemplate>();
+        moduleConfigTemplateObject.AssemblyName=this.AssemblyName;
+        moduleConfigTemplateObject.ServiceNamespace = this.ServiceNamespace;
+        moduleConfigTemplateObject.IServiceNamespace = this.IServiceNamespace;
+        moduleConfigTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+        moduleConfigTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+        moduleConfigTemplateObject.ModuleTables = this.ModuleTables;
+        
+        moduleConfigTemplateObject.ModuleName = this.ModuleName;
+        moduleConfigTemplateObject.ModuleAuthor = this.ModuleAuthor;
+        moduleConfigTemplateObject.ModuleWebsite = this.ModuleWebsite;
+        moduleConfigTemplateObject.ModuleDescription = this.ModuleDescription;
+        moduleConfigTemplateObject.ModuleCategory = this.ModuleCategory;
+        moduleConfigTemplateObject.ModuleVersion = this.ModuleVersion;
+        moduleConfigTemplateObject.ModuleClassName = this.ModuleClassName;
+        
+        moduleConfigTemplateObject.RenderToFile(GetOutputFile(moduleConfigFileName, null), true);
+    }
+    //生成模块接口实现类文件
+    
+    //生成解决方案文件
+    string csprojFileName = String.Format("{0}{1}.csproj", GetFolder(@""), this.AssemblyName);
+      if(this.PageType.Equals(PageTypeEnum.MvcWeb))
+      {
+    	if(!File.Exists(csprojFileName)){
+            MvcCsprojtemplate csprojTemplateObject = this.Create<MvcCsprojtemplate>();
+            csprojTemplateObject.AssemblyName=this.AssemblyName;
+            csprojTemplateObject.ServiceNamespace = this.ServiceNamespace;
+            csprojTemplateObject.IServiceNamespace = this.IServiceNamespace;
+            csprojTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+            csprojTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+            csprojTemplateObject.ModuleTables = this.ModuleTables;
+            csprojTemplateObject.RenderToFile(GetOutputFile(csprojFileName, null), true);
+            
+            string assemblyInfoFileName = String.Format("{0}AssemblyInfo.cs", GetFolder(@"Properties"));
+            AssemblyInfoTemplate assemblyInfoTemplateObject = this.Create<AssemblyInfoTemplate>();
+            assemblyInfoTemplateObject.AssemblyName=this.AssemblyName;
+            assemblyInfoTemplateObject.ServiceNamespace = this.ServiceNamespace;
+            assemblyInfoTemplateObject.IServiceNamespace = this.IServiceNamespace;
+            assemblyInfoTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+            assemblyInfoTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+            assemblyInfoTemplateObject.ModuleTables = this.ModuleTables;
+            assemblyInfoTemplateObject.RenderToFile(GetOutputFile(assemblyInfoFileName, null), true);
+        }
+      }else
+      {
+          	if(!File.Exists(csprojFileName)){
+            CsprojTemplate csprojTemplateObject = this.Create<CsprojTemplate>();
+            csprojTemplateObject.AssemblyName=this.AssemblyName;
+            csprojTemplateObject.ServiceNamespace = this.ServiceNamespace;
+            csprojTemplateObject.IServiceNamespace = this.IServiceNamespace;
+            csprojTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+            csprojTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+            csprojTemplateObject.ModuleTables = this.ModuleTables;
+            csprojTemplateObject.RenderToFile(GetOutputFile(csprojFileName, null), true);
+            
+            string assemblyInfoFileName = String.Format("{0}AssemblyInfo.cs", GetFolder(@"Properties"));
+            AssemblyInfoTemplate assemblyInfoTemplateObject = this.Create<AssemblyInfoTemplate>();
+            assemblyInfoTemplateObject.AssemblyName=this.AssemblyName;
+            assemblyInfoTemplateObject.ServiceNamespace = this.ServiceNamespace;
+            assemblyInfoTemplateObject.IServiceNamespace = this.IServiceNamespace;
+            assemblyInfoTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+            assemblyInfoTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+            assemblyInfoTemplateObject.ModuleTables = this.ModuleTables;
+            assemblyInfoTemplateObject.RenderToFile(GetOutputFile(assemblyInfoFileName, null), true);
+        }
+      }
+
+}
+private void RenderServiceConfig()
+{
+    string serviceConfigFileName = String.Format("{0}Service.Config", GetFolder(@"Service"));
+    //检测配置文件已存在，则生成.bak文件，手动合并
+    if(File.Exists(serviceConfigFileName)){
+        serviceConfigFileName += ".generated";
+    }
+    
+    ServiceConfigTemplate serviceConfigTemplateObject = this.Create<ServiceConfigTemplate>();
+    serviceConfigTemplateObject.AssemblyName=this.AssemblyName;
+    serviceConfigTemplateObject.ServiceNamespace = this.ServiceNamespace;
+    serviceConfigTemplateObject.IServiceNamespace = this.IServiceNamespace;
+    serviceConfigTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+    serviceConfigTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+    serviceConfigTemplateObject.ModuleTables = this.ModuleTables;
+    serviceConfigTemplateObject.DatabaseType=this.DatabaseType.ToString();
+    serviceConfigTemplateObject.RenderToFile(GetOutputFile(serviceConfigFileName, null), true);
+}
+//页面文件生成
+private void RenderManage(TableSchema table)
+{
+    if(this.PageType.Equals(PageTypeEnum.WebForm))
+    {
+
+        #region 如果是web项目
+
+        if(!table.Description.Contains("[noList]")){
+            //列表aspx
+            string listAspxFileName = String.Format("{0}{1}List.aspx", GetFolder(@"Manage"), GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(listAspxFileName))
+            {
+                ListAspxTemplate listAspxTemplateObject = this.Create<ListAspxTemplate>();
+                listAspxTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                listAspxTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                listAspxTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                listAspxTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                listAspxTemplateObject.SourceTable = table;
+                
+                listAspxTemplateObject.RenderToFile(GetOutputFile(listAspxFileName, null), true);
+            }
+        
+            //列表aspx.cs
+            string listAspxCsFileName = String.Format("{0}{1}List.aspx.cs", GetFolder(@"Manage"), GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(listAspxCsFileName))
+            {
+                ListAspxCsTemplate listAspxCsTemplateObject = this.Create<ListAspxCsTemplate>();
+                listAspxCsTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                listAspxCsTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                listAspxCsTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                listAspxCsTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                listAspxCsTemplateObject.SourceTable = table;
+                
+                listAspxCsTemplateObject.RenderToFile(GetOutputFile(listAspxCsFileName, null), true);
+            }
+        }
+        if(!table.Description.Contains("[noEdit]")){
+            //编辑aspx
+            string editAspxFileName = String.Format("{0}{1}Edit.aspx", GetFolder(@"Manage"), GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(editAspxFileName))
+            {
+                EditAspxTemplate editAspxTemplateObject = this.Create<EditAspxTemplate>();
+                editAspxTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                editAspxTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                editAspxTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                editAspxTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                editAspxTemplateObject.SourceTable = table;
+                
+                editAspxTemplateObject.RenderToFile(GetOutputFile(editAspxFileName, null), true);
+            }
+            
+            //编辑aspx.cs
+            string editAspxCsFileName = String.Format("{0}{1}Edit.aspx.cs", GetFolder(@"Manage"), GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(editAspxCsFileName))
+            {
+                EditAspxCsTemplate editAspxCsTemplateObject = this.Create<EditAspxCsTemplate>();
+                editAspxCsTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                editAspxCsTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                editAspxCsTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                editAspxCsTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                editAspxCsTemplateObject.SourceTable = table;
+                
+                editAspxCsTemplateObject.RenderToFile(GetOutputFile(editAspxCsFileName, null), true);
+            }
+            
+            //编辑edit js
+            string editJsFileName = String.Format("{0}Scripts\\{1}Edit.js", GetFolder(@"Manage"), GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(editJsFileName))
+            {
+                EditJsTemplate editJsTemplateObject = this.Create<EditJsTemplate>();
+                editJsTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                editJsTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                editJsTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                editJsTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                editJsTemplateObject.SourceTable = table;
+                
+                editJsTemplateObject.RenderToFile(GetOutputFile(editJsFileName, null), true);
+            }
+        }
+        
+        if(!table.Description.Contains("[noDetail]")){
+            //详情aspx
+            string detailAspxFileName = String.Format("{0}{1}Detail.aspx", GetFolder(@"Manage"), GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(detailAspxFileName))
+            {
+                DetailAspxTemplate detailAspxTemplateObject = this.Create<DetailAspxTemplate>();
+                detailAspxTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                detailAspxTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                detailAspxTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                detailAspxTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                detailAspxTemplateObject.SourceTable = table;
+                
+                detailAspxTemplateObject.RenderToFile(GetOutputFile(detailAspxFileName, null), true);
+            }
+        
+            //详情aspx.cs
+            string detailAspxCsFileName = String.Format("{0}{1}Detail.aspx.cs", GetFolder(@"Manage"), GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(detailAspxCsFileName))
+            {
+                DetailAspxCsTemplate detailAspxCsTemplateObject = this.Create<DetailAspxCsTemplate>();
+                detailAspxCsTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                detailAspxCsTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                detailAspxCsTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                detailAspxCsTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                detailAspxCsTemplateObject.SourceTable = table;
+                
+                detailAspxCsTemplateObject.RenderToFile(GetOutputFile(detailAspxCsFileName, null), true);
+            }
+        }
+        #endregion
+    }
+    else if(this.PageType.Equals(PageTypeEnum.WinForm))
+    {
+        //c/s项目
+        #region 列表窗体
+        if(!table.Description.Contains("[noList]")){
+        
+            //列表Form.cs
+            string listFormCsFileName = String.Format("{0}{1}Form.cs", GetFolder(@"Manage"), GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(listFormCsFileName))
+            {
+                ListFormCsTemplate listFormCsTemplateObject = this.Create<ListFormCsTemplate>();
+                listFormCsTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                listFormCsTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                listFormCsTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                listFormCsTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                listFormCsTemplateObject.AssemblyName = this.AssemblyName;
+                listFormCsTemplateObject.SourceTable = table;
+                
+                listFormCsTemplateObject.RenderToFile(GetOutputFile(listFormCsFileName, null), true);
+            }
+            
+            //列表Form.Designer.cs
+            string listFormDesignerCsFileName = String.Format("{0}{1}Form.Designer.cs", GetFolder(@"Manage"), GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(listFormDesignerCsFileName))
+            {
+                ListFormDesignerCsTemplate listFormDesignerCsTemplateObject = this.Create<ListFormDesignerCsTemplate>();
+                listFormDesignerCsTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                listFormDesignerCsTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                listFormDesignerCsTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                listFormDesignerCsTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                listFormDesignerCsTemplateObject.AssemblyName = this.AssemblyName;
+                listFormDesignerCsTemplateObject.SourceTable = table;
+                
+                listFormDesignerCsTemplateObject.RenderToFile(GetOutputFile(listFormDesignerCsFileName, null), true);
+            }
+            
+            //列表Form.Resx
+            string ListFormResxFileName = String.Format("{0}{1}Form.resx", GetFolder(@"Manage"), GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(ListFormResxFileName))
+            {
+                ListFormResxTemplate ListFormResxTemplateObject = this.Create<ListFormResxTemplate>();
+                ListFormResxTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                ListFormResxTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                ListFormResxTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                ListFormResxTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                ListFormResxTemplateObject.AssemblyName = this.AssemblyName;
+                ListFormResxTemplateObject.SourceTable = table;
+                
+                ListFormResxTemplateObject.RenderToFile(GetOutputFile(ListFormResxFileName, null), true);
+            }
+        }
+        #endregion
+        
+        #region 添加修改窗体
+        if(!table.Description.Contains("[noEdit]")){
+            //编辑Form.cs
+            string editFormCsFileName = String.Format("{0}{1}EditForm.cs", GetFolder(@"Manage"), GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(editFormCsFileName))
+            {
+                EditFormCsTemplate editFormCsTemplateObject = this.Create<EditFormCsTemplate>();
+                editFormCsTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                editFormCsTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                editFormCsTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                editFormCsTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                editFormCsTemplateObject.AssemblyName = this.AssemblyName;
+                editFormCsTemplateObject.SourceTable = table;
+                
+                editFormCsTemplateObject.RenderToFile(GetOutputFile(editFormCsFileName, null), true);
+            }
+            
+            //编辑Form.Designer.cs
+            string editFormDesignerCsFileName = String.Format("{0}{1}EditForm.Designer.cs", GetFolder(@"Manage"), GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(editFormDesignerCsFileName))
+            {
+                EditFormDesignerCsTemplate editFormDesignerCsTemplateObject = this.Create<EditFormDesignerCsTemplate>();
+                editFormDesignerCsTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                editFormDesignerCsTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                editFormDesignerCsTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                editFormDesignerCsTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                editFormDesignerCsTemplateObject.AssemblyName = this.AssemblyName;
+                editFormDesignerCsTemplateObject.SourceTable = table;
+                
+                editFormDesignerCsTemplateObject.RenderToFile(GetOutputFile(editFormDesignerCsFileName, null), true);
+            }
+            
+            //编辑Form.Resx
+            string EditFormResxFileName = String.Format("{0}{1}EditForm.resx", GetFolder(@"Manage"), GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(EditFormResxFileName))
+            {
+                EditFormResxTemplate EditFormResxTemplateObject = this.Create<EditFormResxTemplate>();
+                EditFormResxTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                EditFormResxTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                EditFormResxTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                EditFormResxTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                EditFormResxTemplateObject.AssemblyName = this.AssemblyName;
+                EditFormResxTemplateObject.SourceTable = table;
+                
+                EditFormResxTemplateObject.RenderToFile(GetOutputFile(EditFormResxFileName, null), true);
+            }
+        }
+        #endregion
+        
+        #region 详情查看窗体
+
+        #endregion
+    }
+    else if(this.PageType.Equals(PageTypeEnum.MvcWeb)){
+       
+        #region Mvc Controller
+        //如果 包含 noController 就不用生成文件了
+        //if(DescriptionContains(table.Description,"[noController]")){
+        //    return;
+        //}
+        
+        //1生成 Controller 和 Action
+       string listAspxCsFileName = String.Format("{0}{1}Controller.cs", GetFolder(@"Controllers"), GetTableClassName(table));
+       
+        //检测是否存在，存在的文件不再生成
+        if(!File.Exists(listAspxCsFileName))
+        {
+           ControllerTemplate ControllerTemplateObject = this.Create<ControllerTemplate>();
+           ControllerTemplateObject.ServiceNamespace = this.ServiceNamespace;
+           ControllerTemplateObject.IServiceNamespace = this.IServiceNamespace;
+           ControllerTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+           ControllerTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+           ControllerTemplateObject.AssemblyName=this.AssemblyName;
+           ControllerTemplateObject.SourceTable = table;
+                
+           ControllerTemplateObject.RenderToFile(GetOutputFile(listAspxCsFileName, null), true);
+        }
+        
+         //2生成视图
+        string viewPath=GetFolder(@"Views\"+GetTableClassName(table)+"");
+        if(!table.Description.Contains("[noList]")){
+            //列表 View
+            string listAspxFileName = String.Format("{0}{1}List.cshtml", viewPath,GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(listAspxFileName))
+            {
+                ListCshtmlTemplate listCshtmlTemplateObject = this.Create<ListCshtmlTemplate>();
+                listCshtmlTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                listCshtmlTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                listCshtmlTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                listCshtmlTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                listCshtmlTemplateObject.SourceTable = table;
+                listCshtmlTemplateObject.AssemblyName=this.AssemblyName;
+                
+                listCshtmlTemplateObject.RenderToFile(GetOutputFile(listAspxFileName, null), true);
+            }
+        }
+        if(!table.Description.Contains("[noEdit]")){
+            //编辑 View
+            string editAspxFileName = String.Format("{0}{1}Edit.cshtml", viewPath,GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(editAspxFileName))
+            {
+                EditCshtmlTemplate editCshtmlTemplateObject = this.Create<EditCshtmlTemplate>();
+                editCshtmlTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                editCshtmlTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                editCshtmlTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                editCshtmlTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                editCshtmlTemplateObject.AssemblyName=this.AssemblyName;
+                
+                editCshtmlTemplateObject.SourceTable = table;
+                
+                editCshtmlTemplateObject.RenderToFile(GetOutputFile(editAspxFileName, null), true);
+            }
+            
+        }
+        
+         //详情 View
+        
+        #endregion
+    }
+}
+
+//服务生成
+private void RenderService(TableSchema table)
+{
+    //服务代码生成
+	string serviceFileName = String.Format("{0}{1}Service.cs", GetFolder(@"Service"), GetTableClassName(table));
+    //检测是否存在，存在的文件不再生成
+    if(!File.Exists(serviceFileName))
+    {
+        ServiceTemplate serviceTemplateObject = this.Create<ServiceTemplate>();
+		serviceTemplateObject.ServiceNamespace = this.ServiceNamespace;
+        serviceTemplateObject.IServiceNamespace = this.IServiceNamespace;
+        serviceTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+        serviceTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+		serviceTemplateObject.SourceTable = table;
+        
+		serviceTemplateObject.RenderToFile(GetOutputFile(serviceFileName, null), true);
+    }
+    
+    string iServiceFileName = String.Format("{0}I{1}Service.cs", GetFolder(@"IService"), GetTableClassName(table));
+    //iServiceFileName 检测是否存在，存在的文件不再生成
+    if(!File.Exists(iServiceFileName))
+    {
+        IServiceTemplate iServiceTemplateObject = this.Create<IServiceTemplate>();
+		iServiceTemplateObject.ServiceNamespace = this.ServiceNamespace;
+        iServiceTemplateObject.IServiceNamespace = this.IServiceNamespace;
+        iServiceTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+        iServiceTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+		iServiceTemplateObject.SourceTable = table;
+        
+		iServiceTemplateObject.RenderToFile(GetOutputFile(iServiceFileName, null), true);
+    }
+    
+
+    
+	string dialectSqlServerServiceFileName = String.Format("{0}{1}SqlServerService.cs", GetFolder(@"Service\Dialect\SqlServer"), GetTableClassName(table));
+    //检测是否存在，存在的文件不再生成
+    if(!File.Exists(dialectSqlServerServiceFileName))
+    {
+        SqlServerServiceTemplate sqlServerServiceTemplateObject = this.Create<SqlServerServiceTemplate>();
+		sqlServerServiceTemplateObject.ServiceNamespace = this.ServiceNamespace;
+        sqlServerServiceTemplateObject.IServiceNamespace = this.IServiceNamespace;
+        sqlServerServiceTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+        sqlServerServiceTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+		sqlServerServiceTemplateObject.SourceTable = table;
+        
+		sqlServerServiceTemplateObject.RenderToFile(GetOutputFile(dialectSqlServerServiceFileName, null), true);
+    }
+    
+	string dialectMySqlServiceFileName = String.Format("{0}{1}MySqlService.cs", GetFolder(@"Service\Dialect\MySql"), GetTableClassName(table));
+    //检测是否存在，存在的文件不再生成
+    if(!File.Exists(dialectMySqlServiceFileName))
+    {
+        MySqlServiceTemplate mySqlServiceTemplateObject = this.Create<MySqlServiceTemplate>();
+		mySqlServiceTemplateObject.ServiceNamespace = this.ServiceNamespace;
+        mySqlServiceTemplateObject.IServiceNamespace = this.IServiceNamespace;
+        mySqlServiceTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+        mySqlServiceTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+		mySqlServiceTemplateObject.SourceTable = table;
+        
+		mySqlServiceTemplateObject.RenderToFile(GetOutputFile(dialectMySqlServiceFileName, null), true);
+    }
+
+	string dialectOracleServiceFileName = String.Format("{0}{1}OracleService.cs", GetFolder(@"Service\Dialect\Oracle"), GetTableClassName(table));
+    //检测是否存在，存在的文件不再生成
+    if(!File.Exists(dialectOracleServiceFileName))
+    {
+        OracleServiceTemplate oracleServiceTemplateObject = this.Create<OracleServiceTemplate>();
+		oracleServiceTemplateObject.ServiceNamespace = this.ServiceNamespace;
+        oracleServiceTemplateObject.IServiceNamespace = this.IServiceNamespace;
+        oracleServiceTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+        oracleServiceTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+		oracleServiceTemplateObject.SourceTable = table;
+        
+		oracleServiceTemplateObject.RenderToFile(GetOutputFile(dialectOracleServiceFileName, null), true);
+    }
+	
+}
+
+private void RegisterReferences()
+{
+    //注册组件
+
+}
+
+private OutputFile GetOutputFile(string fileName, string dependentUpon, params object[] metaData)
+{
+	OutputFile outputFile = new OutputFile(fileName);
+	
+	if(!String.IsNullOrEmpty(dependentUpon))
+		outputFile.DependentUpon = Path.GetFullPath(dependentUpon);
+	
+	if(metaData.Length % 2 != 0)
+		throw new Exception("Invalid Metadata: Provide 2 objects per entry, a String (key) followed by an Object.");
+	for(int x=0; x<metaData.Length; x+=2)
+    	outputFile.Metadata.Add(metaData[x].ToString(), metaData[x+1]);
+		
+	return outputFile;
+}
+
+/// <summary>
+/// 获取目录
+/// </summary>
+/// <param name="folder"></param>
+/// <returns></returns>
+private string GetFolder(string folder)
+{
+	if (folder.Contains(".") && !folder.EndsWith("."))
+        folder = folder.Substring(folder.LastIndexOf('.')+1);
+		
+	if(String.IsNullOrEmpty(folder))
+		folder = String.Empty;
+	else
+	{
+		if (!Directory.Exists(folder))
+            Directory.CreateDirectory(folder);
+			
+		if (!folder.EndsWith("\\"))
+			folder = String.Format("{0}\\", folder);
+	}
+	return folder;
+}
+/// <summary>
+///  
+/// </summary>
+/// <param name="folder"></param>
+/// <returns></returns>
+private string GetLastAssemblyName()
+{
+    var AssemblyNames= this.AssemblyName.Split('.');
+	 
+	return AssemblyNames[AssemblyNames.Length-1];
+}
+</script>

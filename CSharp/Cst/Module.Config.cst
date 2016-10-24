@@ -1,0 +1,53 @@
+﻿<%-- 
+Name: Module.Config.cst
+Author: lspcieee
+Description: 项目文件生成（vs2010 sp1,c#4.0）
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" Inherits="CsNHibernateHelper" Src="Helpers/CsNHibernateHelper.cs" TargetLanguage="xml" Debug="False" Description="Generates a Business Object for NHibernate." %>
+<%@ Property Name="ModuleTables" Type="SchemaExplorer.TableSchemaCollection"  Optional="False" Category="1. 数据库设置" Description="请选择模块所包含的表" Filter="SourceTable"%>
+<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="2a. Assembly" Description="The name of the Assembly that will contain the business objects." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+
+<%@ Property Name="ModuleName" Type="System.String" Default="信息发布模块" Optional="False" Category="4. 模块配置" Description="模块中文名称" %>
+<%@ Property Name="ModuleAuthor" Default="KingDon Soft" Category="4. 模块配置" Description="开发者" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="ModuleWebsite" Default="http://www.kingdonsoft.com/" Category="4. 模块配置" Description="开发者网站" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="ModuleDescription" Default="核心模块" Category="4. 模块配置" Description="描述" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="ModuleCategory" Default="Core" Category="4. 模块配置" Description="种类" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="ModuleVersion" Default="1.0.0" Category="4. 模块配置" Description="版本号" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="ModuleClassName" Default="CoreModule" Category="4. 模块配置" Description="模块接口实现类名称" 
+Type="System.String"  Optional="False"  %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+
+<?xml version="1.0" encoding="utf-8"?>
+<ModuleConfig>
+  <!--模块信息-->
+  <Name><%= ModuleName%></Name>
+  <Author><%= ModuleAuthor%></Author>
+  <Website><%= ModuleWebsite%></Website>
+  <Version><%= ModuleVersion%></Version>
+  <Description><%= ModuleDescription%></Description>
+  <Category><%= ModuleCategory%></Category>
+  <AssemblyName><%= AssemblyName%></AssemblyName>
+  <ClassName><%= AssemblyName+"."+ModuleClassName%></ClassName>
+  <AutoActivate>True</AutoActivate>
+  <!--状态信息-->
+  <Enabled>True</Enabled>
+  <Installed>False</Installed>
+  <InsertTimeStamp></InsertTimeStamp>
+  <UpdateTimeStamp></UpdateTimeStamp>
+</ModuleConfig>

@@ -1,0 +1,43 @@
+﻿<%-- 
+Name:  
+Author: wuw
+Description: 项目文件生成（vs2010 sp1,c#4.5）
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" Inherits="CsNHibernateHelper" Src="../Helpers/CsNHibernateHelper.cs" TargetLanguage="xml" Debug="False" Description="Generates a Business Object for NHibernate." %>
+<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="2. 程序集" Description="模块程序集名称" %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3. 命名空间" Description="Framework命名空间" %>
+<?xml version="1.0"?>
+
+<configuration>
+  <configSections>
+    <sectionGroup name="system.web.webPages.razor" type="System.Web.WebPages.Razor.Configuration.RazorWebSectionGroup, System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35">
+      <section name="host" type="System.Web.WebPages.Razor.Configuration.HostSection, System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35" requirePermission="false" />
+      <section name="pages" type="System.Web.WebPages.Razor.Configuration.RazorPagesSection, System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35" requirePermission="false" />
+    </sectionGroup>
+  </configSections>
+
+  <system.web.webPages.razor>
+    <host factoryType="System.Web.Mvc.MvcWebRazorHostFactory, System.Web.Mvc, Version=5.2.2.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35" />
+    <pages pageBaseType="<%=this.FrameworkNamespace%>.MVC.MvcWebViewPage">
+      <namespaces>
+        <add namespace="System.Web.Mvc" />
+        <add namespace="System.Web.Mvc.Ajax" />
+        <add namespace="System.Web.Mvc.Html" />
+        <add namespace="System.Web.Routing" /> 
+        <add namespace="<%=this.AssemblyName%>.Domain"/>
+
+      </namespaces>
+    </pages>
+  </system.web.webPages.razor>
+
+  <appSettings>
+    <add key="webpages:Enabled" value="false" />
+  </appSettings>
+
+  <system.webServer>
+    <handlers>
+      <remove name="BlockViewHandler"/>
+      <add name="BlockViewHandler" path="*" verb="*" preCondition="integratedMode" type="System.Web.HttpNotFoundHandler" />
+    </handlers>
+  </system.webServer>
+</configuration>

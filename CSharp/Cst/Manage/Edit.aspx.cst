@@ -1,0 +1,79 @@
+﻿<%-- 
+Name: edit.aspx.cst
+Author: lspcieee
+Description: 编辑页面生成
+--%>
+<%@ CodeTemplate Language="C#" Src="..\Helpers\CsNHibernateHelper.cs" Inherits="CsNHibernateHelper"　 ResponseEncoding="UTF-8" TargetLanguage="html" Debug="False" Description="Generates an editable Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+<%
+TableSchemaCollection ExcludedTables = new TableSchemaCollection();
+EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables);
+    //获取主键名称
+    string primaryKeyName="Id";
+	//Primary Key
+	if(entityManager.PrimaryKey.IsCompositeKey) { 
+
+	} else {
+        primaryKeyName= entityManager.PrimaryKey.KeyColumn.PropertyName;
+	} 
+%>
+<%%@ Page Language="C#" MasterPageFile="~/Manage/MasterPage/Main.master" AutoEventWireup="true"
+    CodeFile="<%= GetTableClassName(SourceTable) %>Edit.aspx.cs" Inherits="<%= GetTableClassName(SourceTable) %>Edit" %%>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+    <title></title>
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
+    <div id="edit-container">
+        <div class="content">
+            <asp:UpdatePanel ID="UpdatePanel1" runat="server">
+                <Triggers>
+                    <asp:AsyncPostBackTrigger runat="server" ControlID="linkSave" />
+                </Triggers>
+                <ContentTemplate>
+                    <asp:PlaceHolder ID="phData" runat="server">
+                        <table class="content-table">
+                             <caption>
+                                <%= ClearNote(SourceTable.Description) %>编辑</caption>
+                            <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion){
+                            if(!DescriptionContains(em,"[hide]"))
+                            { %>
+                            <tr>
+                                <th <%if(!em.Column.AllowDBNull && em.Column.SystemType != typeof(System.Boolean)){%> class="required-title"<% } %>>
+                                    <%= GetDescription(em) %>
+                                </th>
+                                <td>
+                                    <asp:TextBox ID="fc<%= em.PropertyName %>" infieldlabel="<%= GetDescription(em) %>" runat="server" CssClass="fc<%= em.PropertyName %> validate-input width-normal">
+                                    </asp:TextBox>
+                                </td>
+                            </tr>
+                            <% }} %>
+                        </table>
+                    </asp:PlaceHolder>
+                </ContentTemplate>
+            </asp:UpdatePanel>
+           
+        </div>
+        <div class="operation-container">        
+            <div class="operation">
+                <asp:LinkButton ID="linkSave" runat="server" CssClass="btn-save submit kingdonlink" OnClick="linkSave_Click">保存</asp:LinkButton>
+                <a class="btn-close kingdonlink close" href="<%= GetTableClassName(SourceTable) %>List.aspx">关闭</a>
+                <div class="clear"></div>
+            </div>
+        </div>
+        <div class="clear">
+        </div>
+    </div>
+</asp:Content>

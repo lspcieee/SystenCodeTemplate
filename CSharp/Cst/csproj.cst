@@ -1,0 +1,123 @@
+﻿<%-- 
+Name: csproj.cst
+Author: lspcieee
+Description: 项目文件生成（vs2010 sp1,c#4.0）
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" Inherits="CsNHibernateHelper" Src="Helpers/CsNHibernateHelper.cs" TargetLanguage="xml" Debug="False" Description="Generates a Business Object for NHibernate." %>
+<%@ Property Name="ModuleTables" Type="SchemaExplorer.TableSchemaCollection"  Optional="False" Category="1. 数据库设置" Description="请选择模块所包含的表" Filter="SourceTable"%>
+<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="2a. Assembly" Description="The name of the Assembly that will contain the business objects." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{<%= Guid.NewGuid()%>}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace><%= AssemblyName%></RootNamespace>
+    <AssemblyName><%= AssemblyName%></AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\bin\Debug\Modules\<%= AssemblyName%>\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+      <Reference Include="Castle.Core">
+      <HintPath>..\..\..\..\Lib\Castle\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.Facilities.NHibernateIntegration">
+      <HintPath>..\..\..\..\Lib\Castle\Castle.Facilities.NHibernateIntegration.dll</HintPath>
+    </Reference>
+    <Reference Include="NHibernate, Version=3.2.0.4000, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Lib\NHibernate\NHibernate.dll</HintPath>
+    </Reference>
+    <Reference Include="<%= FrameworkNamespace%>">
+      <HintPath>..\..\..\..\Lib\<%= FrameworkNamespace%>.dll</HintPath>
+    </Reference>
+    <Reference Include="KDSoft.Util">
+      <HintPath>..\..\..\..\Lib\KDSoft.Util.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <%
+    foreach(TableSchema table in ModuleTables)
+    {
+        string tableName=GetTableClassName(table);
+    %>
+    <Compile Include="%40generated\Domain\<%=tableName%>.generated.cs" />
+    <Compile Include="Domain\<%=tableName%>.cs" />
+    <Compile Include="Service\<%=tableName%>Service.cs" />
+    <Compile Include="IService\I<%=tableName%>Service.cs" />
+    <Compile Include="Service\Dialect\SqlServer\<%=tableName%>SqlServerService.cs" />
+    <Compile Include="Service\Dialect\MySql\<%=tableName%>MySqlService.cs" />
+    <Compile Include="Service\Dialect\Oracle\<%=tableName%>OracleService.cs" />
+    <%}%>
+  </ItemGroup>
+
+  <ItemGroup>
+    <%
+    foreach(TableSchema table in ModuleTables)
+    {
+        string tableName=GetTableClassName(table);
+    %>
+    <EmbeddedResource Include="%40generated\Mappings\<%=tableName%>.hbm.xml" />
+    <%}%>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="%40generated\Service\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Module.Config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Service\Service.Config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

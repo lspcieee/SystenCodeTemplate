@@ -1,0 +1,204 @@
+﻿<%-- 
+Name: edit.aspx.cs.cst
+Author: lspcieee
+Description: 编辑页面生成
+--%>
+<%@ CodeTemplate Language="C#" Src="..\Helpers\CsNHibernateHelper.cs" Inherits="CsNHibernateHelper"　 ResponseEncoding="UTF-8" TargetLanguage="C#" Debug="False" Description="Generates an editable Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+<%
+TableSchemaCollection ExcludedTables = new TableSchemaCollection();
+EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables);
+    //获取主键名称
+    string primaryKeyName="Id";
+    //Primary Key
+	if(entityManager.PrimaryKey.IsCompositeKey) { 
+
+	} else {
+        primaryKeyName= entityManager.PrimaryKey.KeyColumn.PropertyName;
+	} 
+%>
+using System;
+using System.Threading;
+using System.Web.UI.WebControls;
+using <%= this.EntitiesNamespace %>;
+using <%= this.IServiceNamespace %>;
+using KDSoft.KDCMS.Util.Ext;
+using NHibernate.Criterion;
+
+public partial class <%= GetTableClassName(SourceTable) %>Edit : ManagePageBase
+{
+    #region 服务
+        
+    /// <summary>
+    /// <%= SourceTable.Description %>操作对象
+    /// </summary>
+    public I<%= GetTableClassName(SourceTable) %>Service <%= GetTableClassName(SourceTable) %>Service { get; set; }
+
+    #endregion
+    
+    /// <summary>
+    /// <%= SourceTable.Description %>Id
+    /// </summary>
+    public int <%= GetTableClassName(SourceTable) %>Id
+    {
+        get
+        {
+            return ViewState["<%= GetTableClassName(SourceTable) %>Id"] != null ? (int) ViewState["<%= GetTableClassName(SourceTable) %>Id"] : int.MinValue;
+        }
+        set { ViewState["<%= GetTableClassName(SourceTable) %>Id"] = value; }
+    }
+
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!Page.IsPostBack)
+        {
+            // 初始化表单数据
+            InitData();
+
+            // 判断是修改是还是新增
+            if (!Request.QueryString["<%= GetTableClassName(SourceTable) %>Id"].IsNullOrEmpty())
+            {
+                <%= GetTableClassName(SourceTable) %>Id = Request.QueryString["<%= GetTableClassName(SourceTable) %>Id"].ToInt32();
+                LoadData();
+            }
+        }
+    }
+
+    #region 初始化
+
+    /// <summary>
+    /// 初始化表单数据
+    /// </summary>
+    private void InitData()
+    {
+        //加载header引用文件
+        RegisterHeaderFile("colorbox", "poshytip","validate", "edit");
+        //RegisterHeaderFileByModule("Core.WebsiteMenuEdit", GetService<CoreModule>());
+        
+        //todo:加载下拉框数据
+    }
+
+    #endregion
+
+    #region 加载数据
+
+    /// <summary>
+    /// 编辑时加载数据
+    /// </summary>
+    private void LoadData()
+    {
+        if (<%= GetTableClassName(SourceTable) %>Id <= 0)
+        {
+            return;
+        }
+
+        <%= GetTableClassName(SourceTable) %> data = <%= GetTableClassName(SourceTable) %>Service.Get(<%= GetTableClassName(SourceTable) %>Id);
+
+        // 自动绑定属性到控件
+        phData.BindObjectToControls(data, "fc");
+
+        // 手动绑定属性到控件
+
+    }
+
+    #endregion
+
+    #region 校验数据
+    /// <summary>
+    /// 校验表单字段.
+    /// </summary>
+    /// <returns></returns>
+    private bool Check()
+    {
+        if (!Page.IsValid)
+        {
+            return false;
+        }
+        //服务端校验
+        //ValidationHelper<string> vh = new ValidationHelper<string>();
+        //vh.Init(tbCheckRule.Text.Trim(), "校验规则").CustomRule(value => (value == string.Empty && bool.Parse(rblNeedCheck.SelectedValue.ToString())), "校验规则不能为空");
+        //if (vh.HasErrors())
+        //{
+        //    JSHelper.Alert(this.Page, this.GetType(), vh.ErrorMessage);
+        //    return false;
+        //}
+        return true;
+    }
+    #endregion
+    
+    #region 保存数据
+
+    protected void linkSave_Click(object sender, EventArgs e)
+    {
+        if (SaveData())
+        {
+            Success("保存成功!");
+        }
+    }
+
+    private bool SaveData()
+    {
+        //验证数据
+        if (!Check())
+            return false;
+
+        // 修改
+        if (<%= GetTableClassName(SourceTable) %>Id > 0)
+        {
+            var data = <%= GetTableClassName(SourceTable) %>Service.Get(<%= GetTableClassName(SourceTable) %>Id);
+
+            // 自动绑定控件数据到对象
+            SetData(data);
+
+            // 实体对象基本数据库数据逻辑验证
+            data.Validate();
+
+            // 更新对象
+            <%= GetTableClassName(SourceTable) %>Service.Update(data);
+        }
+        // 新增
+        else
+        {
+            var data = new <%= GetTableClassName(SourceTable) %>();
+            SetData(data);
+            data.Validate();
+            <%= GetTableClassName(SourceTable) %>Service.Add(data);
+        }
+        return true;
+    }
+
+    #endregion
+
+    #region 设置属性
+    private void SetData(<%= GetTableClassName(SourceTable) %> data)
+    {
+        // 自动绑定控件值到属性
+        phData.BindControlsToObject(data,"fc");
+
+        // 手工取值
+        <% // ForeignKey Properties%>
+		<%-- foreach(EntityAssociation ea in entityManager.OneToMany) { %>
+		//todo:外键赋值"<%= ea.ColumnName %>"
+		<% } --%>
+        <% foreach(EntityAssociation ea in entityManager.ManyToOne) { %>
+		//todo: n:1外键赋值"<%= ea.ColumnName %>"
+		<% } %>
+        <%-- foreach(EntityAssociation ea in entityManager.ManyToMany) { %>
+		//todo:外键赋值"<%= ea.ColumnName %>"
+		<% } --%>
+    }
+    #endregion
+
+}

@@ -1,0 +1,9 @@
+﻿<%-- 
+Name:
+Author: 
+Description: 
+--%>
+<%@ CodeTemplate Language="C#" Src="..\Helpers\CsNHibernateHelper.cs" Inherits="CsNHibernateHelper"　 ResponseEncoding="UTF-8" TargetLanguage="html" Debug="False" Description="Generates an editable Business Object for NHibernate." %>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}

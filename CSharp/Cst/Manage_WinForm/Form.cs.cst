@@ -1,0 +1,288 @@
+﻿<%-- 
+Name: Form.cs.cst
+Author: lspcieee
+Description: 列表窗体生成
+--%>
+<%@ CodeTemplate Language="C#" Src="..\Helpers\CsNHibernateHelper.cs" Inherits="CsNHibernateHelper"　 ResponseEncoding="UTF-8" TargetLanguage="C#" Debug="False" Description="Generates an editable Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="2. 程序集" Description="模块程序集名称" %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+<%
+TableSchemaCollection ExcludedTables = new TableSchemaCollection();
+EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables);
+    //获取主键名称
+    string primaryKeyName="Id";
+    //Primary Key
+	if(entityManager.PrimaryKey.IsCompositeKey) { 
+
+	} else {
+        primaryKeyName= entityManager.PrimaryKey.KeyColumn.PropertyName;
+	} 
+%>
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+using KDSoft.Core.Winform.Manage;
+using KDSoft.Core.Winform.UserControls;
+using <%= this.EntitiesNamespace %>;
+using <%= this.IServiceNamespace %>;
+using NHibernate.Criterion;
+
+namespace <%=AssemblyName%>.Manage
+{
+    public partial class <%= GetTableClassName(SourceTable) %>Form : DockPanelFormBase
+    {
+        private I<%= GetTableClassName(SourceTable) %>Service _<%= ToProperCase(GetTableClassName(SourceTable)) %>Service;
+
+        public <%= GetTableClassName(SourceTable) %>Form()
+        {
+            InitializeComponent();
+
+            if (!IsInitForm)
+            {
+                InitData();
+                LoadData();
+            }
+
+        }
+
+
+
+        private void InitData()
+        {
+            //初始化service
+            _<%= ToProperCase(GetTableClassName(SourceTable)) %>Service = GetService<I<%= GetTableClassName(SourceTable) %>Service>();
+
+            dataGridViewList.AutoGenerateColumns = false;
+        <%-- 根据数据库中的标记生成对应要搜索的字段--%>
+        <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+            if(DescriptionContains(em,"[list]")){
+        %>
+        //<%=GetDescription(em) %>
+            var column<%= em.PropertyName %> = new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "<%= em.PropertyName %>",
+                Name = "<%=GetDescription(em) %>",
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+            };
+            dataGridViewList.Columns.Add(column<%= em.PropertyName %>);
+            
+        <% 
+            }
+        } %>
+           
+            //var columnControl = new DataGridViewActionButtonColumn
+            //{
+            //    Name = "操作",
+            //    Width = 140,
+            //    AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+            //};
+            //dataGridViewList.Columns.Add(columnControl);
+            var linkView = new DataGridViewLinkColumn()
+            {
+                Text = "查看",
+                Name = "linkDelete",
+                HeaderText = "查看",
+                Width = 50,
+                UseColumnTextForLinkValue = true
+            };
+            dataGridViewList.Columns.Add(linkView);
+
+            var linkEdit = new DataGridViewLinkColumn()
+            {
+                Text = "修改",
+                Name = "linkEdit",
+                HeaderText = "修改",
+                Width = 50,
+                UseColumnTextForLinkValue = true
+            };
+            dataGridViewList.Columns.Add(linkEdit);
+
+            var linkDelete = new DataGridViewLinkColumn()
+            {
+                Text = "删除",
+                Name = "linkDelete",
+                HeaderText = "删除",
+                Width = 50,
+                UseColumnTextForLinkValue = true,
+            };
+            dataGridViewList.Columns.Add(linkDelete);
+            dataGridViewList.CellClick += dataGridViewList_CellClick;
+            IsInitForm = true;
+        }
+
+
+
+        public void LoadData()
+        {
+            var criterionList = new List<ICriterion>();
+
+            #region 构造条件
+            <%-- 根据数据库中的标记生成对应要搜索的字段--%>
+            <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+                if(DescriptionContains(em,"[search]")){
+            %>
+            //<%=GetDescription(em) %>
+            if (!string.IsNullOrEmpty(search<%= em.PropertyName %>.Text.Trim()))
+            {
+                ICriterion <%=ToProperCase( em.PropertyName) %>Criterion = Restrictions.Like(<%= GetTableClassName(SourceTable) %>.ColumnNames.<%= em.PropertyName %>, string.Format("%{0}%", search<%= em.PropertyName %>.Text.Trim()));
+
+                criterionList.Add(<%=ToProperCase( em.PropertyName) %>Criterion);
+            }
+            <% 
+                }
+            } %>
+            
+            <%--//如果有逻辑删除，加上逻辑删除的条件--%>
+            <%
+            if(HasLogicDeleteEntityMember(entityManager)){
+            %>
+            //过滤已经删除的
+            ICriterion isDeletedCriterion = Restrictions.Eq(<%= GetTableClassName(SourceTable) %>.ColumnNames.IsDeleted, false);
+            criterionList.Add(isDeletedCriterion);
+            <%    
+            }
+            %>
+
+
+            #region 条件添加示例
+
+            //linq的方式添加条件
+            //ICriterion equalCriterion1 = Restrictions.Where<<%= GetTableClassName(SourceTable) %>>(d => d.ParentName == "上级部门名称");
+            //criterionList.Add(equalCriterion1);
+
+            //另外一种添加方式
+            //criterionList.Add(new LikeExpression(<%= GetTableClassName(SourceTable) %>.ColumnNames.Name, "部门名称"));
+
+            #endregion
+
+            #endregion
+
+            //排序
+            Order order = Order.Desc(<%= GetTableClassName(SourceTable) %>.ColumnNames.<%=primaryKeyName%>);
+
+
+            int amount = 0;
+            int pageSize = pagerControlList.PageSize;
+            int pageNumber = pagerControlList.PageNumber;
+
+            var list = _<%= ToProperCase(GetTableClassName(SourceTable)) %>Service.GetPagedList(pageSize, pageNumber, criterionList, order, ref amount);
+            dataGridViewList.DataSource = list;
+
+            pagerControlList.DrawControl(amount);
+
+        }
+
+        private void dataGridViewList_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            <%= GetTableClassName(SourceTable) %> <%= ToProperCase(GetTableClassName(SourceTable)) %> = null;
+            if (dataGridViewList.DataSource != null && e.RowIndex >= 0 && e.ColumnIndex >= 0)
+            {
+                var list = dataGridViewList.DataSource as IList<<%= GetTableClassName(SourceTable) %>>;
+
+                <%= ToProperCase(GetTableClassName(SourceTable)) %> = list[e.RowIndex];
+                if (<%= ToProperCase(GetTableClassName(SourceTable)) %> == null)
+                {
+                    return;
+                }
+
+
+                var cell = dataGridViewList[e.ColumnIndex, e.RowIndex] as DataGridViewLinkCell;
+                if (cell == null)
+                {
+                    return;
+                }
+                
+                var value = cell.Value.ToString();
+
+                switch (value)
+                {
+                    case "查看":
+                        var <%= ToProperCase(GetTableClassName(SourceTable)) %>ViewForm = new <%= GetTableClassName(SourceTable) %>EditForm(CurrentUser, <%= ToProperCase(GetTableClassName(SourceTable)) %>);
+                        <%= ToProperCase(GetTableClassName(SourceTable)) %>ViewForm.ShowDialog();
+                        break;
+
+                    case "修改":
+                        var <%= ToProperCase(GetTableClassName(SourceTable)) %>EditForm = new <%= GetTableClassName(SourceTable) %>EditForm(CurrentUser, <%= ToProperCase(GetTableClassName(SourceTable)) %>);
+                        <%= ToProperCase(GetTableClassName(SourceTable)) %>EditForm.ShowDialog();
+						LoadData();
+                        break;
+
+                    case "删除":
+                        if (MessageBox.Show("请确认，是否删除？", "操作确认", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                        {
+                            _<%= ToProperCase(GetTableClassName(SourceTable)) %>Service.Delete(<%= ToProperCase(GetTableClassName(SourceTable)) %>.<%=primaryKeyName%>);
+                            MessageBox.Show("删除成功!");
+                            LoadData();
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+        }
+
+        private void toolStripButtonAdd_Click(object sender, EventArgs e)
+        {
+            var <%= ToProperCase(GetTableClassName(SourceTable)) %>EditForm = new <%= GetTableClassName(SourceTable) %>EditForm(CurrentUser);
+            <%= ToProperCase(GetTableClassName(SourceTable)) %>EditForm.ShowDialog();
+			LoadData();
+        }
+
+        private void buttonSearch_Click(object sender, EventArgs e)
+        {
+            //初始化分页
+            pagerControlList.PageNumber = 1;
+            LoadData();
+        }
+
+        private void toolStripButtonEdit_Click(object sender, EventArgs e)
+        {
+            var list = dataGridViewList.DataSource as IList<<%= GetTableClassName(SourceTable) %>>;
+            if (dataGridViewList.SelectedRows.Count > 0)
+            {
+                <%= GetTableClassName(SourceTable) %> <%= ToProperCase(GetTableClassName(SourceTable)) %> = list[dataGridViewList.SelectedRows[0].Index];
+                var <%= ToProperCase(GetTableClassName(SourceTable)) %>EditForm = new <%= GetTableClassName(SourceTable) %>EditForm(CurrentUser, <%= ToProperCase(GetTableClassName(SourceTable)) %>);
+                <%= ToProperCase(GetTableClassName(SourceTable)) %>EditForm.ShowDialog();
+            }
+        }
+
+        private void toolStripButtonDel_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("请确认，是否删除所选内容？", "操作确认", MessageBoxButtons.YesNo) == DialogResult.Yes
+                && dataGridViewList.DataSource != null)
+            {
+                var list = dataGridViewList.DataSource as IList<<%= GetTableClassName(SourceTable) %>>;
+                for (int i = 0; i < dataGridViewList.SelectedRows.Count; i++)
+                {
+                    <%= GetTableClassName(SourceTable) %> <%= ToProperCase(GetTableClassName(SourceTable)) %> = list[dataGridViewList.SelectedRows[i].Index];
+                    _<%= ToProperCase(GetTableClassName(SourceTable)) %>Service.Delete(<%= ToProperCase(GetTableClassName(SourceTable)) %>.<%=primaryKeyName%>);
+                }
+                MessageBox.Show("删除成功!");
+                LoadData();
+            }
+        }
+
+        private void pagerControlList_OnPageChanged(object sender, EventArgs e)
+        {
+            LoadData();
+        }
+    }
+}

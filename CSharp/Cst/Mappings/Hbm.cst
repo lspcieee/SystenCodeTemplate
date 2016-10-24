@@ -1,0 +1,95 @@
+﻿<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" Inherits="CsNHibernateHelper" Src="../Helpers/CsNHibernateHelper.cs" TargetLanguage="xml" Debug="False" Description="Generates a Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="ExcludedTables" Type="SchemaExplorer.TableSchemaCollection" Optional="True" Category="1b. Database Options" Description="A collection of tables to be excluded during generation." %>
+<%@ Property Name="AssemblyName" Type="System.String" Default="NHibernate.Generated" Optional="False" Category="2a. Assembly" Description="The name of the Assembly that will contain the business objects." %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="NHibernate.Generated.BusinessObjects" Optional="False" Category="2b. Namespaces" Description="The desired Namespace for the Business Objects." %>
+<%@ Property Name="BaseNamespace" Type="System.String" Default="NHibernate.Generated.Base" Optional="False" Category="3b. Namespaces" Description="The Namespace where the Base classes (BusinessBase & ManagerBase) are located." %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables); %>
+<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="<%= EntitiesNamespace %>" assembly="<%= AssemblyName %>">
+	<class name="<%= EntitiesNamespace %>.<%= GetTableClassName(SourceTable) %>, <%= AssemblyName %>" table="<%= SourceTable.Name %>" lazy="true">
+		<% // Primary Key%>
+		<% if(entityManager.PrimaryKey.IsCompositeKey) { %>
+        
+		<composite-id>
+			<% foreach(EntityMember em in entityManager.PrimaryKey.KeyColumns) { %>
+			<key-property name="<%= em.PropertyName %>" column="<%= em.ColumnSafeName %>" /> 
+			<% } %>
+		</composite-id>
+		<% } else { %>
+		<id name="<%= entityManager.PrimaryKey.KeyColumn.PropertyName %>" column="<%= entityManager.PrimaryKey.KeyColumn.ColumnSafeName %>">
+		 	<%= entityManager.PrimaryKey.Generator %>
+		</id>
+		<% } %>
+        
+		<% // Version %>
+		<% if(entityManager.HasRowVersionMember) { %>
+		<version name="<%= entityManager.RowVersionMember.PropertyName %>" column="<%= entityManager.RowVersionMember.ColumnSafeName %>" />
+		<% } %>
+        
+		<% // Properties %>
+		<% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { %>
+		<property name="<%= em.PropertyName %>" column="<%= em.ColumnSafeName %>" <%=GetPropertyLazy(em) %> <%=GetPropertyType(em) %> />
+		<% } %>
+        
+        <% // ForeignKey Properties%>
+		<%-- foreach(EntityAssociation ea in entityManager.OneToMany) { %>
+		<property name="<%= ea.ColumnName %>" column="<%= ea.ColumnSafeName %>" />
+		<% } --%>
+        <% foreach(EntityAssociation ea in entityManager.ManyToOne) { %>
+		<property name="<%= ea.ColumnName %>" column="<%= ea.ColumnSafeName %>" />
+		<% } %>
+        <%-- foreach(EntityAssociation ea in entityManager.ManyToMany) { %>
+		<property name="<%= ea.ColumnName %>" column="<%= ea.ColumnSafeName %>" />
+		<% } --%>
+	</class>
+</hibernate-mapping>
+
+<script runat="template">
+    //延迟加载
+    public string GetPropertyLazy(EntityMember em)
+    {
+        bool lazy=false;
+        ColumnSchema column=em.Column;               
+
+        //数据库字段中包含[lazy]的字段延迟加载
+        lazy=column.Description.Contains("[lazy]");
+
+        
+        //根据字段类型判断
+        if(lazy==false){
+            lazy=(column.NativeType== "ntext");
+        }
+		
+		if(column.Description.Contains("[noLazy]")){
+			lazy=false;
+		}
+		
+        if(lazy){
+            return @"lazy=""true""";
+        }
+        else
+        {
+            return String.Empty;
+        }
+    }
+    
+    //设置类型
+    public string GetPropertyType(EntityMember em)
+    {
+	    ColumnSchema column=em.Column;      
+        if((column.NativeType== "ntext")){
+            return @" type=""StringClob""";
+        }
+        else
+        {
+            return String.Empty;
+        }
+    }
+</script>

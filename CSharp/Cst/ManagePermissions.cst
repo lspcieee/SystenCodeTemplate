@@ -1,0 +1,93 @@
+﻿<%-- 
+Name: csproj.cst
+Author: wuw
+Description: 项目文件生成（vs2010 sp1,c#4.5）
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" Inherits="CsNHibernateHelper" Src="Helpers/CsNHibernateHelper.cs" TargetLanguage="C#" Debug="False" Description="Generates a Business Object for NHibernate." %>
+<%@ Property Name="ModuleTables" Type="SchemaExplorer.TableSchemaCollection"  Optional="False" Category="1. 数据库设置" Description="请选择模块所包含的表" Filter="SourceTable"%>
+<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="2a. Assembly" Description="The name of the Assembly that will contain the business objects." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+
+using Systen.Framework.Module.Menu;
+
+namespace <%=this.AssemblyName %>
+{
+    public struct <%=GetLastAssemblyName()%>ManagePermissions
+    {
+
+        /// <summary>
+        /// 该模块左侧菜单
+        /// </summary>
+        [ManageMenu(Name = "模块管理", Key = "manage/<%=GetLastAssemblyName()%>ManageMenu", Link = "")]
+        public struct <%=GetLastAssemblyName()%>ManageMenu
+        {      
+            <%
+            foreach(TableSchema table in ModuleTables)
+            {
+                string tableName=GetTableClassName(table);
+                if(!table.Description.Contains("[noList]")){
+            %>
+            /// <summary>
+            ///<%=table.Description %>   
+            /// </summary>
+            [ManageMenu(Name = "<%=table.Description %>", Key = "<%=tableName%>/<%=tableName%>List", Link = "<%=tableName%>/<%=tableName%>List")]
+            public struct <%=tableName%>List
+            {
+            <%if(!table.Description.Contains("[noAdd]")){ %>
+                /// <summary>
+                /// 添加
+                /// </summary>
+                [Operation(Name = "添加", Key = "<%=tableName%>/Add")]
+                public struct Add { }
+                <%} %>
+                <%if(!table.Description.Contains("[noEdit]")){ %>
+                /// <summary>
+                /// 编辑
+                /// </summary>
+                [Operation(Name = "编辑", Key = "<%=tableName%>/<%=tableName%>Edit")]
+                public struct Edit { }
+
+                /// <summary>
+                /// 编辑
+                /// </summary>
+                [Operation(Name = "保存编辑", Key = "<%=tableName%>/Update")]
+                public struct Update { }
+                <%} %>
+                   <%if(!table.Description.Contains("[noDelete]")){ %>
+                /// <summary>
+                /// 删除
+                /// </summary>
+                [Operation(Name = "删除", Key = "<%=tableName%>/Delete")]
+                public struct Del { }
+                <%} %>
+
+            }
+            <%}}%> 
+
+        }
+    }
+}
+<script runat="template"> 
+/// <summary>
+///  
+/// </summary>
+/// <param name="folder"></param>
+/// <returns></returns>
+private string GetLastAssemblyName()
+{
+    var AssemblyNames= this.AssemblyName.Split('.');
+	 
+	return AssemblyNames[AssemblyNames.Length-1];
+}
+</script>

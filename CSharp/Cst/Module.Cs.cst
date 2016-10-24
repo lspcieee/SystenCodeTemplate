@@ -1,0 +1,77 @@
+﻿<%-- 
+Name: csproj.cst
+Author: wuw
+Description: 项目文件生成（vs2010 sp1,c#4.5）
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" Inherits="CsNHibernateHelper" Src="Helpers/CsNHibernateHelper.cs" TargetLanguage="C#" Debug="False" Description="Generates a Business Object for NHibernate." %>
+<%@ Property Name="ModuleTables" Type="SchemaExplorer.TableSchemaCollection"  Optional="False" Category="1. 数据库设置" Description="请选择模块所包含的表" Filter="SourceTable"%>
+<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="2a. Assembly" Description="The name of the Assembly that will contain the business objects." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+using System;
+using System.Collections.Generic;
+using System.Web.Routing;
+using Systen.Framework.Web;
+using Remotion.Linq.Collections;
+using Systen.Framework;
+using Systen.Framework.Domain;
+using Systen.Framework.Module;
+using Systen.Framework.Module.Menu; 
+
+namespace <%=this.AssemblyName %>
+{
+    public class <%=GetLastAssemblyName(this.AssemblyName)%>Module : ModuleBase
+    {
+        public <%=GetLastAssemblyName(this.AssemblyName)%>Module()
+        {
+       
+        }
+
+        public override void Install()
+        {
+            base.Install();
+        }
+
+        public override void Uninstall()
+        {
+        
+            base.Uninstall();
+        }
+ 
+
+        public override void Start()
+        {
+            base.Start();
+        }
+
+        public override void Stop()
+        {
+
+            base.Stop();
+        }
+
+        public override IList<MenuBase> GetManageMenuList()
+        {
+            return StructToManageMenuList(typeof(<%=GetLastAssemblyName(this.AssemblyName)%>ManagePermissions));
+        }
+
+        public override IList<MenuBase> GetMemberMenuList()
+        {
+            return null;
+        }
+
+ 
+
+      
+    }
+} 

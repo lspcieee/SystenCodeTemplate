@@ -1,0 +1,145 @@
+﻿<%-- 
+Name: list.aspx.cst
+Author: lspcieee
+Description: 列表页面生成
+--%>
+<%@ CodeTemplate Language="C#" Src="..\Helpers\CsNHibernateHelper.cs" Inherits="CsNHibernateHelper"　 ResponseEncoding="UTF-8" TargetLanguage="html" Debug="False" Description="Generates an editable Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+<%
+TableSchemaCollection ExcludedTables = new TableSchemaCollection();
+EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables);
+    //获取主键名称
+    string primaryKeyName="Id";
+	//Primary Key
+	if(entityManager.PrimaryKey.IsCompositeKey) { 
+
+	} else {
+        primaryKeyName= entityManager.PrimaryKey.KeyColumn.PropertyName;
+	} 
+%>
+<%%@ Page Language="C#" MasterPageFile="~/Manage/MasterPage/Main.master" AutoEventWireup="true"
+    CodeFile="<%= GetTableClassName(SourceTable) %>List.aspx.cs" Inherits="<%= GetTableClassName(SourceTable) %>List" %%>
+
+<%%@ Register Assembly="AspNetPager" Namespace="Wuqi.Webdiyer" TagPrefix="KD" %%>
+<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
+    <div id="list-container">
+        <div class="nav-position">
+            当前位置 &gt; <%= ClearNote(SourceTable.Description) %>列表 </div>
+        <div class="main">
+            <div class="search">
+                <!--检索条件 Start-->
+                <asp:PlaceHolder ID="phSearch" runat="server">
+                    <ul>
+                        <%-- 根据数据库中的标记生成对应要搜索的字段--%>
+                        <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+                            if(DescriptionContains(em,"[search]")){
+                        %>
+                        
+                        <li>
+                            <label for="<%%=search<%= em.PropertyName %>.ClientID%%>">
+                            <%=GetDescription(em) %>:</label>
+                            <asp:TextBox ID="search<%= em.PropertyName %>" CssClass="search-text" runat="server"></asp:TextBox>
+                        </li>
+                        <% 
+                            }
+                        } %>
+                        <li class="search-button">
+                            <asp:LinkButton ID="btnSearch" CssClass="btnSearch kingdonlink" OnClick="btnSearch_Click"
+                                runat="server">查 询</asp:LinkButton>
+                        </li>
+                    </ul>
+                    <div class="clear">
+                    </div>
+                </asp:PlaceHolder>
+            </div>
+            <div class="operation">
+                <asp:HyperLink ID="btAdd" CssClass="add" runat="server" NavigateUrl="<%= GetTableClassName(SourceTable) %>Edit.aspx">添加</asp:HyperLink>
+                <asp:LinkButton ID="btnDelete" CssClass="delete" OnClick="btnDelete_Click" ConfirmText="您确定要删除选择的数据吗?"
+                    runat="server">删除</asp:LinkButton>
+                <div class="clear">
+                </div>
+                
+            </div>
+            <div class="content">
+                <asp:UpdatePanel ID="UpdatePanel1" runat="server">
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnDelete" />
+                        <asp:AsyncPostBackTrigger ControlID="btnSearch" />
+                        <asp:AsyncPostBackTrigger ControlID="<%= GetTableClassName(SourceTable) %>AspNetPager" />
+                    </Triggers>
+                    <ContentTemplate>
+                        <asp:Repeater ID="rp<%= GetTableClassName(SourceTable) %>" runat="server" OnItemCommand="rp<%= GetTableClassName(SourceTable) %>_ItemCommand">
+                            <HeaderTemplate>
+                                <table class="content-table">
+                                    <thead>
+                                        <th class="checkbox-th">
+                                            <input type="checkbox" />
+                                        </th>
+                                        <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+                                            if(DescriptionContains(em,"[list]")){
+                                        %>
+                                        <th>
+                                            <%=GetDescription(em) %>
+                                        </th>
+                                        <% 
+                                            }
+                                        } %>
+                                        <th class="item-operation-th">
+                                            操作
+                                        </th>
+                                    </thead>
+                                    <tbody>
+                            </HeaderTemplate>
+                            <ItemTemplate>
+                                <tr class="item">
+                                    <td class="checkbox-td">
+                                        <asp:CheckBox ID="cbID" ToolTip='<%%# Eval("<%= primaryKeyName%>") %%>' runat="server" />
+                                    </td>
+                                    <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+                                        if(DescriptionContains(em,"[list]")){
+                                    %>
+                                    <td>
+                                        <%%#Eval("<%= em.PropertyName %>")%%>
+                                    </td>
+                                    <% 
+                                        }
+                                    } %>
+    
+                                    <td class="item-operation-td">
+                                        <div class="item-operation">
+                                            <asp:HyperLink ID="btEdit" CssClass="edit" runat="server" NavigateUrl='<%%# string.Format("<%= GetTableClassName(SourceTable) %>Edit.aspx?<%= GetTableClassName(SourceTable) %>Id={0}",Eval("<%= primaryKeyName%>"))  %%>'>修改</asp:HyperLink>
+                                            <asp:LinkButton ID="btDelete" CommandName="Delete" ToolTip="删除" Text="删除" CommandArgument='<%%# Eval("<%= primaryKeyName%>") %%>'
+                                                CssClass="delete" ConfirmText="您确定要删除此<%= ClearNote(SourceTable.Description) %>数据吗?" runat="server" />
+                                        </div>
+                                    </td>
+                                </tr>
+                            </ItemTemplate>
+                            <FooterTemplate>
+                                </tbody> </table>
+                            </FooterTemplate>
+                        </asp:Repeater>
+                        <div class="list-contents-table-footer">
+                            <KD:AspNetPager ID="<%= GetTableClassName(SourceTable) %>AspNetPager" runat="server" OnPageChanged="<%= GetTableClassName(SourceTable) %>AspNetPager_PageChanged">
+                            </KD:AspNetPager>
+                        </div>
+                    </ContentTemplate>
+                </asp:UpdatePanel>
+    
+            </div>
+        </div>
+    </div>
+</asp:Content>

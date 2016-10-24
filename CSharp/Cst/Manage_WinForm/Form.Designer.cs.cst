@@ -1,0 +1,311 @@
+﻿<%-- 
+Name: Form.Designer.cs.cst
+Author: lspcieee
+Description: 列表窗体生成
+--%>
+<%@ CodeTemplate Language="C#" Src="..\Helpers\CsNHibernateHelper.cs" Inherits="CsNHibernateHelper"　 ResponseEncoding="UTF-8" TargetLanguage="C#" Debug="False" Description="Generates an editable Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="2. 程序集" Description="模块程序集名称" %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+<%
+TableSchemaCollection ExcludedTables = new TableSchemaCollection();
+EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables);
+    //获取主键名称
+    string primaryKeyName="Id";
+    //Primary Key
+	if(entityManager.PrimaryKey.IsCompositeKey) { 
+
+	} else {
+        primaryKeyName= entityManager.PrimaryKey.KeyColumn.PropertyName;
+	} 
+%>
+namespace <%=AssemblyName%>.Manage
+{
+    partial class <%= GetTableClassName(SourceTable) %>Form
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(<%= GetTableClassName(SourceTable) %>Form));
+            this.panelTop = new System.Windows.Forms.Panel();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+
+            this.buttonSearch = new KDSoft.Core.Winform.UserControls.SearchButton();
+            this.label2 = new System.Windows.Forms.Label();
+            this.searchRvnm = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.searchStnm = new System.Windows.Forms.TextBox();
+            this.toolStripList = new System.Windows.Forms.ToolStrip();
+            this.toolStripButtonAdd = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonEdit = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonDel = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.panelContent = new System.Windows.Forms.Panel();
+            this.dataGridViewList = new System.Windows.Forms.DataGridView();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.pagerControlList = new KDSoft.Core.Winform.UserControls.PagerControl();
+            this.panelTop.SuspendLayout();
+            this.groupBox1.SuspendLayout();
+            this.toolStripList.SuspendLayout();
+            this.panelContent.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewList)).BeginInit();
+            this.panel1.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // panelTop
+            // 
+            this.panelTop.Controls.Add(this.groupBox1);
+            this.panelTop.Controls.Add(this.toolStripList);
+            this.panelTop.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panelTop.Location = new System.Drawing.Point(0, 32);
+            this.panelTop.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.panelTop.Name = "panelTop";
+            this.panelTop.Size = new System.Drawing.Size(1005, 92);
+            this.panelTop.TabIndex = 0;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.buttonSearch);
+            this.groupBox1.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.groupBox1.Location = new System.Drawing.Point(0, 27);
+            this.groupBox1.Margin = new System.Windows.Forms.Padding(100);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.groupBox1.Size = new System.Drawing.Size(1005, 65);
+            this.groupBox1.TabIndex = 5;
+            this.groupBox1.TabStop = false;
+            <%-- 根据数据库中的标记生成对应要搜索的字段--%>
+            <% 
+            var searchIndex=0;
+            foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+                if(DescriptionContains(em,"[search]")){
+                    int searchNum=searchIndex+1;
+                    int lableX=12+205*searchIndex;
+                    int textBoxX=70+235*searchIndex;
+            %>
+            this.label<%= em.PropertyName %> = new System.Windows.Forms.Label();
+            this.search<%= em.PropertyName %> = new System.Windows.Forms.TextBox();
+            
+            //<%=GetDescription(em) %>   搜索字段名称
+            this.label<%= em.PropertyName %>.AutoSize = true;
+            this.label<%= em.PropertyName %>.Location = new System.Drawing.Point(<%= lableX %>, 31);
+            this.label<%= em.PropertyName %>.Name = "label<%= em.PropertyName %>";
+            this.label<%= em.PropertyName %>.Size = new System.Drawing.Size(52, 15);
+            this.label<%= em.PropertyName %>.TabIndex = <%= (searchNum*2).ToString()%>;
+            this.label<%= em.PropertyName %>.Text = "<%= GetDescription(em) %> ：";
+            
+            //<%=GetDescription(em) %>   搜索字段输入框
+            this.search<%= em.PropertyName %>.Location = new System.Drawing.Point(<%= textBoxX %>, 26);
+            this.search<%= em.PropertyName %>.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.search<%= em.PropertyName %>.Name = "search<%= em.PropertyName %>";
+            this.search<%= em.PropertyName %>.Size = new System.Drawing.Size(129, 25);
+            this.search<%= em.PropertyName %>.TabIndex = <%= (searchNum*2+1).ToString()%>;
+            
+            this.groupBox1.Controls.Add(this.label<%= em.PropertyName %>);
+            this.groupBox1.Controls.Add(this.search<%= em.PropertyName %>);
+            <% 
+                    searchIndex++;
+                }
+            } %>
+
+            // 
+            // buttonSearch
+            // 
+            this.buttonSearch.Location = new System.Drawing.Point(703, 24);
+            this.buttonSearch.Name = "buttonSearch";
+            this.buttonSearch.Size = new System.Drawing.Size(75, 28);
+            this.buttonSearch.TabIndex = 7;
+            this.buttonSearch.Text = "搜索";
+            this.buttonSearch.UseVisualStyleBackColor = true;
+            this.buttonSearch.Click += new System.EventHandler(this.buttonSearch_Click);
+
+            // 
+            // toolStripList
+            // 
+            this.toolStripList.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripButtonAdd,
+            this.toolStripButtonEdit,
+            this.toolStripButtonDel,
+            this.toolStripSeparator1});
+            this.toolStripList.Location = new System.Drawing.Point(0, 0);
+            this.toolStripList.Name = "toolStripList";
+            this.toolStripList.Size = new System.Drawing.Size(1005, 27);
+            this.toolStripList.TabIndex = 1;
+            this.toolStripList.Text = "toolStrip1";
+            // 
+            // toolStripButtonAdd
+            // 
+            this.toolStripButtonAdd.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonAdd.Image")));
+            this.toolStripButtonAdd.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonAdd.Name = "toolStripButtonAdd";
+            this.toolStripButtonAdd.Size = new System.Drawing.Size(59, 24);
+            this.toolStripButtonAdd.Text = "添加";
+            this.toolStripButtonAdd.Click += new System.EventHandler(this.toolStripButtonAdd_Click);
+            // 
+            // toolStripButtonEdit
+            // 
+            this.toolStripButtonEdit.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonEdit.Image")));
+            this.toolStripButtonEdit.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonEdit.Name = "toolStripButtonEdit";
+            this.toolStripButtonEdit.Size = new System.Drawing.Size(59, 24);
+            this.toolStripButtonEdit.Text = "修改";
+            this.toolStripButtonEdit.Click += new System.EventHandler(this.toolStripButtonEdit_Click);
+            // 
+            // toolStripButtonDel
+            // 
+            this.toolStripButtonDel.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonDel.Image")));
+            this.toolStripButtonDel.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonDel.Name = "toolStripButtonDel";
+            this.toolStripButtonDel.Size = new System.Drawing.Size(59, 24);
+            this.toolStripButtonDel.Text = "删除";
+            this.toolStripButtonDel.Click += new System.EventHandler(this.toolStripButtonDel_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 27);
+            // 
+            // panelContent
+            // 
+            this.panelContent.Controls.Add(this.dataGridViewList);
+            this.panelContent.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panelContent.Location = new System.Drawing.Point(0, 124);
+            this.panelContent.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.panelContent.Name = "panelContent";
+            this.panelContent.Size = new System.Drawing.Size(1005, 597);
+            this.panelContent.TabIndex = 2;
+            // 
+            // dataGridViewList
+            // 
+            this.dataGridViewList.AllowUserToAddRows = false;
+            this.dataGridViewList.AllowUserToDeleteRows = false;
+            this.dataGridViewList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridViewList.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dataGridViewList.Location = new System.Drawing.Point(0, 0);
+            this.dataGridViewList.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.dataGridViewList.Name = "dataGridViewList";
+            this.dataGridViewList.ReadOnly = true;
+            this.dataGridViewList.RowTemplate.Height = 27;
+            this.dataGridViewList.Size = new System.Drawing.Size(1005, 597);
+            this.dataGridViewList.TabIndex = 0;
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.pagerControlList);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panel1.Location = new System.Drawing.Point(0, 683);
+            this.panel1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(1005, 38);
+            this.panel1.TabIndex = 3;
+            // 
+            // pagerControlList
+            // 
+            this.pagerControlList.BackColor = System.Drawing.SystemColors.Control;
+            this.pagerControlList.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pagerControlList.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(78)))), ((int)(((byte)(151)))));
+            this.pagerControlList.JumpText = "跳转";
+            this.pagerControlList.Location = new System.Drawing.Point(0, 2);
+            this.pagerControlList.Margin = new System.Windows.Forms.Padding(4);
+            this.pagerControlList.Name = "pagerControlList";
+            this.pagerControlList.PageNumber = 1;
+            this.pagerControlList.PageSize = 30;
+            this.pagerControlList.RecordCount = 0;
+            this.pagerControlList.Size = new System.Drawing.Size(1005, 36);
+            this.pagerControlList.TabIndex = 0;
+            this.pagerControlList.OnPageChanged += new System.EventHandler(this.pagerControlList_OnPageChanged);
+            // 
+            // <%= GetTableClassName(SourceTable) %>Form
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(1005, 721);
+            this.Controls.Add(this.panel1);
+            this.Controls.Add(this.panelContent);
+            this.Controls.Add(this.panelTop);
+            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.Name = "<%= GetTableClassName(SourceTable) %>Form";
+            this.Text = "<%= GetTableClassName(SourceTable) %>Form";
+            this.Controls.SetChildIndex(this.panelTop, 0);
+            this.Controls.SetChildIndex(this.panelContent, 0);
+            this.Controls.SetChildIndex(this.panel1, 0);
+            this.panelTop.ResumeLayout(false);
+            this.panelTop.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
+            this.toolStripList.ResumeLayout(false);
+            this.toolStripList.PerformLayout();
+            this.panelContent.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewList)).EndInit();
+            this.panel1.ResumeLayout(false);
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
+        }
+
+        #endregion
+
+        private System.Windows.Forms.Panel panelTop;
+        private System.Windows.Forms.Panel panelContent;
+        private System.Windows.Forms.DataGridView dataGridViewList;
+        private System.Windows.Forms.TextBox searchStnm;
+        private System.Windows.Forms.ToolStrip toolStripList;
+        private System.Windows.Forms.ToolStripButton toolStripButtonAdd;
+        private System.Windows.Forms.ToolStripButton toolStripButtonEdit;
+        private System.Windows.Forms.ToolStripButton toolStripButtonDel;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox searchRvnm;
+        private System.Windows.Forms.Panel panel1;
+        private Core.Winform.UserControls.PagerControl pagerControlList;
+        private Core.Winform.UserControls.SearchButton buttonSearch;
+        
+        
+        <%-- 根据数据库中的标记生成对应要搜索的字段--%>
+        <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+            if(DescriptionContains(em,"[search]")){
+        %>
+        private System.Windows.Forms.Label label<%= em.PropertyName %>;
+        private System.Windows.Forms.TextBox search<%= em.PropertyName %>;
+        <% 
+            }
+        } %>
+
+    }
+}

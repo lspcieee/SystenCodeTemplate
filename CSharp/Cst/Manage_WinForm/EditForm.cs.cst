@@ -1,0 +1,180 @@
+﻿<%-- 
+Name: Form.cs.cst
+Author: lspcieee
+Description: 编辑窗体生成
+--%>
+<%@ CodeTemplate Language="C#" Src="..\Helpers\CsNHibernateHelper.cs" Inherits="CsNHibernateHelper"　 ResponseEncoding="UTF-8" TargetLanguage="C#" Debug="False" Description="Generates an editable Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="2. 程序集" Description="模块程序集名称" %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+<%
+TableSchemaCollection ExcludedTables = new TableSchemaCollection();
+EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables);
+    //获取主键名称
+    string primaryKeyName="Id";
+    //Primary Key
+	if(entityManager.PrimaryKey.IsCompositeKey) { 
+
+	} else {
+        primaryKeyName= entityManager.PrimaryKey.KeyColumn.PropertyName;
+	} 
+%>
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+using KDSoft.Core.Winform.Domain;
+using KDSoft.Core.Winform.Ext.Control;
+using KDSoft.Core.Winform.Manage;
+using <%= this.EntitiesNamespace %>;
+using <%= this.IServiceNamespace %>;
+
+namespace <%=AssemblyName%>.Manage
+{
+    public partial class <%= GetTableClassName(SourceTable) %>EditForm : ManageFormBase
+    {
+        public <%= GetTableClassName(SourceTable) %>EditForm()
+        {
+            InitializeComponent();
+        }
+
+        public <%= GetTableClassName(SourceTable) %>EditForm(CurrentUser currentUser)
+        {
+            InitializeComponent();
+
+            CurrentUser = currentUser;
+            InitData();
+        }
+
+        public <%= GetTableClassName(SourceTable) %>EditForm(CurrentUser currentUser, <%= GetTableClassName(SourceTable) %> <%= ToProperCase(GetTableClassName(SourceTable)) %>)
+        {
+            InitializeComponent();
+
+            CurrentUser = currentUser;
+			InitData();
+            Data = <%= ToProperCase(GetTableClassName(SourceTable)) %>;
+            if (Data != null)
+            {
+                
+                LoadData();
+            }
+        }
+
+        /// <summary>
+        /// 要编辑/添加的对象
+        /// </summary>
+        public <%= GetTableClassName(SourceTable) %> Data { get; set; }
+
+
+        private void InitData()
+        {
+            //:加载下拉框数据
+            //var dataSource= GetService<InfoBaseModule>().XmlDataCenter["SttpType"].ToList();
+            //fcSttp.DataSource = dataSource;
+            //fcSttp.Text = "key";
+            //fcSttp.ValueMember = "value";
+        }
+
+        public void LoadData()
+        {
+            if (Data == null)
+            {
+                return;
+            }
+            // 自动绑定属性到控件
+            groupBoxEdit.BindObjectToControls(Data, "fc");
+        }
+
+
+        #region 校验数据
+        /// <summary>
+        /// 校验表单字段.
+        /// </summary>
+        /// <returns></returns>
+        private bool Check()
+        {
+            return true;
+        }
+        #endregion
+
+        #region 保存数据
+
+        private void Save_Click(object sender, EventArgs e)
+        {
+            if (SaveData())
+            {
+                MessageBox.Show("保存成功!");
+            }
+        }
+
+        private bool SaveData()
+        {
+            //验证数据
+            if (!Check())
+                return false;
+
+            var <%= ToProperCase(GetTableClassName(SourceTable)) %>Service = GetService<I<%= GetTableClassName(SourceTable) %>Service>();
+            // 修改
+            if (Data!=null)
+            {
+                
+                // 自动绑定控件数据到对象
+                SetData(Data);
+
+                // 实体对象基本数据库数据逻辑验证
+                Data.Validate();
+
+                // 更新对象
+                <%= ToProperCase(GetTableClassName(SourceTable)) %>Service.Update(Data);
+            }
+            // 新增
+            else
+            {
+                Data = new <%= GetTableClassName(SourceTable) %>();
+                //创建时间
+                //Data.DateCreated = DateTime.Now;
+                SetData(Data);
+                Data.Validate();
+                <%= ToProperCase(GetTableClassName(SourceTable)) %>Service.Add(Data);
+            }
+
+            return true;
+        }
+
+        #endregion
+
+        #region 设置属性
+        private void SetData(<%= GetTableClassName(SourceTable) %> data)
+        {
+            // 自动绑定控件值到属性
+
+            groupBoxEdit.BindControlsToObject(data, "fc");
+
+            // 手工取值
+
+        }
+        #endregion
+
+        private void Cancel_Click(object sender, EventArgs e)
+        {
+            Close();
+            
+        }
+
+    }
+}

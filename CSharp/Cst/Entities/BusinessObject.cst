@@ -1,0 +1,146 @@
+﻿<%-- 
+Name: BusinessObject.cst
+Author: lspcieee
+Description: 生成业务对象
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" Inherits="CsNHibernateHelper" Src="../Helpers/CsNHibernateHelper.cs" TargetLanguage="C#" Debug="False" Description="Generates a Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="2. Namespaces" Description="Framework命名空间" %>
+<%@ Property Name="ExcludedTables" Type="SchemaExplorer.TableSchemaCollection" Optional="True" Category="1b. Database Options" Description="A collection of tables to be excluded during generation." %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="2. Namespaces" Description="The desired Namespace for the Business Objects." %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+<% EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables); %>
+
+using System;
+using <%= FrameworkNamespace %>.Entity;
+using NHibernate.Classic;
+
+namespace <%= EntitiesNamespace %>
+{
+    /// <summary>
+    /// <%= ClearNote(SourceTable.Description) %>
+    /// </summary>
+    public partial class <%= GetTableClassName(SourceTable) %>  : EntityBase
+    {
+        <% if(entityManager.PrimaryKey.IsCompositeKey) { %>
+        //复合主键重写方法
+        public override bool Equals(object obj) { return base.Equals(obj); }
+        public override int GetHashCode() { return base.GetHashCode(); }
+		<% }%>
+        #region 实体属性
+        
+        <% // 主键 %>
+		<% if(entityManager.PrimaryKey.IsCompositeKey) { %>
+        
+
+		<% } else { 
+            EntityMember em=entityManager.PrimaryKey.KeyColumn;
+            %>
+        /// <summary>
+        /// <%= em.Column.Description %>
+        /// </summary>
+        public virtual <%= em.SystemType %> <%= em.PropertyName %> { get; set; }
+		<% } %>
+        
+        
+		<% foreach(EntityMember em in entityManager.Members) { %>
+        /// <summary>
+        /// <%= em.Column.Description %>
+        /// </summary>
+        public virtual <%= em.SystemType %> <%= em.PropertyName %> { get; set; }
+        
+		<% } %>
+        
+        <% // ForeignKey Properties%>
+        <%-- foreach(EntityAssociation ea in entityManager.OneToMany) { %>
+        /// <summary>
+        /// <%= ea.Column.Description %>
+        /// </summary>
+        public virtual <%= ea.Column.SystemType %> <%= ea.Column.Name %> { get; set; }
+		<% } --%>
+        
+        <% foreach(EntityAssociation ea in entityManager.ManyToOne) { %>
+        /// <summary>
+        /// <%= ea.Column.Description %>
+        /// </summary>
+        public virtual <%= ea.Column.SystemType %> <%= ea.Column.Name %> { get; set; }
+		<% } %>
+        
+        <%-- foreach(EntityAssociation ea in entityManager.ManyToMany) { %>
+        /// <summary>
+        /// <%= ea.Column.Description %>
+        /// </summary>
+        public virtual <%= ea.Column.SystemType %> <%= ea.Column.Name %> { get; set; }
+		<% } --%>
+        #endregion
+        
+        #region 数据库元属性
+        /// <summary>
+        /// 数据库表名
+        /// </summary>
+        public static readonly string TableName = "<%= SourceTable %>";
+        
+		/// <summary>
+        /// 实体名称
+        /// </summary>
+        public static readonly string DomainName = "<%= GetTableClassName(SourceTable) %>";
+        
+		
+        /// <summary>
+        /// 数据库表描述
+        /// </summary>
+        public static readonly string TableDescription = "<%=ClearNote( entityManager.Members[0].Column.Table.Description) %>";
+        
+        /// <summary>
+        /// 列属性列表
+        /// </summary>
+        public struct ColumnNames
+        {
+            <% // 主键 %>
+            <% if(entityManager.PrimaryKey.IsCompositeKey) { %>
+            
+    
+            <% } else { 
+                EntityMember em=entityManager.PrimaryKey.KeyColumn;
+                %>
+            /// <summary>
+            /// <%= em.Column.Description %>
+            /// </summary>
+            public static string <%= em.PropertyName %> = @"<%= em.PropertyName %>";
+            <% } %>
+        
+            <% foreach(EntityMember em in entityManager.Members) { %>
+            /// <summary>
+            /// <%= em.Column.Description %>
+            /// </summary>
+            public static string <%= em.PropertyName %> = @"<%= em.PropertyName %>";
+            
+            <% } %>
+            
+            <% // ForeignKey Properties%>
+            <% foreach(EntityAssociation ea in entityManager.ManyToOne) { %>
+            /// <summary>
+            /// <%= ea.Column.Description %>
+            /// </summary>
+            public static string <%= ea.Column.Name %> = @"<%= ea.Column.Name %>";
+            <% } %>
+            
+            <%-- foreach(EntityAssociation ea in entityManager.ManyToMany) { %>
+            /// <summary>
+            /// <%= ea.Column.Description %>
+            /// </summary>
+            public static string <%= ea.Column.Name %> = @"<%= ea.Column.Name %>";
+            <% } --%>
+        }
+
+        #endregion
+    }
+}
