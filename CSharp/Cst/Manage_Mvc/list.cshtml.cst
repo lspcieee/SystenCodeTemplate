@@ -256,7 +256,8 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                     window.top.layer.open({
                         title: false,
                         closeBtn: false,
-                        area: ['800px', '600px'],
+                         area: ['85%', '100%'],//全屏模式 如果不想要全屏模式 可以自己设置 宽度和高度 如area: ['800px', '600px'],删除 offset: 'rb'
+                        offset: 'rb',
                         type: 2,
                         content: ['@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>Edit" })/?id=' + data.Id, 'no'],
                         end: function () {
@@ -272,7 +273,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                         idList.push($(this).val());
                     });
                     
-                    window.top.layer.confirm('你确定删除所有勾选？', { icon: 1 }, function (index) {
+                    window.top.layer.confirm('你确定删除所有勾选？', { icon: 3 }, function (index) {
                         $.ajax({
                             url: "@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>BatchDelete" })",
                             data: { 'idList': idList },
@@ -297,7 +298,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                 };
                 //删除
                 viewModel.onItemDeleteClick = function (data, event) {
-                    window.top.layer.confirm('你确定删除？', { icon: 1 }, function (index) {
+                    window.top.layer.confirm('你确定删除？', { icon: 3 }, function (index) {
                         $.ajax({
                             url: "@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>Delete" })",
                             data: { 'id': data.Id },

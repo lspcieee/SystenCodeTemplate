@@ -201,6 +201,7 @@ namespace <%= this.AssemblyName %>.Controllers
        ///todo:逻辑删除 字段未指定，需要手动调整
        /// </summary>
        public JsonResult <%= GetTableClassName(SourceTable) %>Delete(int id){
+              if(id<0){return Json(new { Success = false, Msg = "参数错误" }, JsonRequestBehavior.AllowGet);}
                 //直接删除
                 //<%= GetTableClassName(SourceTable) %>Service.BatchDelete(new List<object>(){id});
                //逻辑删除
@@ -208,7 +209,7 @@ namespace <%= this.AssemblyName %>.Controllers
               //delItem.IsDelete=true;
               //<%= GetTableClassName(SourceTable) %>Service.Update(delItem);
               
-              if(id<0){return Json(new { Success = false, Msg = "参数错误" }, JsonRequestBehavior.AllowGet);}
+             
               
              <%if(isDelete){ %>
                 //直接删除
