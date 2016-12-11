@@ -119,8 +119,12 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             self.submitData = function () {
                 //获取
                 var editItem = self.<%= GetTableClassName(SourceTable) %>();
-
+                //loading层
+                var loadingIndex = layer.load(0, {
+                    shade: [0.2, '#000'] //0.2透明度的黑色背景
+                });
                 $.post('@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>SaveEdit" })', { 'editItem': editItem }, function (result) {
+                    parent.layer.close(loadingIndex);
                     if (result.Success) {
                         layer.msg(result.Msg, {
                             icon: 1,
