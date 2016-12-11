@@ -107,14 +107,14 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
          <div class="two fields">
             <div class="field">
                 <div class="ui fluid labeled input">
-                    <div class="ui label"><%= GetDescription(entityManagerList[i]) %>:</div>    
+                    <div class="ui label"><%= GetDescription(entityManagerList[i]) %></div>    
                     <input id="<%= entityManagerList[i].PropertyName %>" name="<%= entityManagerList[i].PropertyName %>" data-bind="value:<%= GetTableClassName(SourceTable) %>().<%= entityManagerList[i].PropertyName %>" type="text" disabled="" >
                 </div>  
             </div>
             <%if((i+1)<entityManagerList.Count){ %>
             <div class="field">
                 <div class="ui fluid labeled input">  
-                    <div class="ui label"><%= GetDescription(entityManagerList[i]) %>:</div>   
+                    <div class="ui label"><%= GetDescription(entityManagerList[i]) %></div>   
                     <input id="<%= entityManagerList[i+1].PropertyName %>" name="<%= entityManagerList[i+1].PropertyName %>" data-bind="value:<%= GetTableClassName(SourceTable) %>().<%= entityManagerList[i+1].PropertyName %>" type="text" disabled="" >
                 </div>
             </div>
