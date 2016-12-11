@@ -1,0 +1,163 @@
+﻿<%-- 
+Name: edit.cshtml.cst
+Author: lspcieee
+Description: 查看页面生成
+--%>
+<%@ CodeTemplate Language="C#" Src="..\Helpers\CsNHibernateHelper.cs" Inherits="CsNHibernateHelper"　 ResponseEncoding="UTF-8" TargetLanguage="html" Debug="False" Description="Generates an editable Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="3b. 程序集" Description="模块程序集名称" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="System.Linq" %>
+
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+<%
+TableSchemaCollection ExcludedTables = new TableSchemaCollection();
+EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables);
+List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m => !m.Column.Description.Contains("[hide]")).ToList();
+    //获取主键名称
+    string primaryKeyName="Id";
+	//Primary Key
+	if(entityManager.PrimaryKey.IsCompositeKey) { 
+
+	} else {
+        primaryKeyName= entityManager.PrimaryKey.KeyColumn.PropertyName;
+	} 
+   
+%>
+@inherits Systen.Framework.MVC.MvcWebViewPage
+@section Head{
+    @RegisterHeaderFile("common", "semantic", "Ztree", "knockout", "poshytip", "validate", "edit")
+     <style type="text/css">
+        .editorHeader {
+            margin-left: auto;
+            margin-right: auto;
+            width: 400px;
+            margin-bottom: 39px;
+        }
+
+        .sapnInfo {
+            float: left;
+            width: 85px;
+        }
+
+        .boxhide {
+            display: none;
+        }
+
+        .boxshow {
+            display: block;
+        }
+
+        .boxinfo {
+            margin-top: -12px;
+        }
+
+        .rightDelBtn {
+            width: 50px;
+            float: right;
+            padding-right: 103px;
+        }
+
+	.labeled > .label {
+            width: 105px;
+            font-weight: inherit;
+        }
+
+        :not([class*='corner labeled']):not([class*='right labeled']).ui.labeled.input > textarea {
+            border-left: none;
+            border-top-left-radius: 0px;
+            border-bottom-left-radius: 0px;
+        }
+    </style>
+}
+<h2 id="editHeader" class="ui header">
+    <div id="editHeaderButton">
+        <a href="#" class="close" title="关闭"><i class="icon line-close line-font"></i></a>
+    </div>
+    <i class="browser icon"></i>
+    <div class="content">
+        <%= ClearNote(SourceTable.Description) %>
+        <div class="sub header">信息查看</div>
+    </div>
+
+</h2>
+
+<form id="DetailForm" action="">
+    <div class="editorHeader">
+        <div id="switchingView" class="ui basic buttons" style="width: 390px;">
+            <div class="ui button active" index="0">信息1</div>
+            <div class="ui button" index="1">情况2</div>
+        </div>
+    </div>
+    
+    <div class="ui container ui form">
+     <% for (int i = 0; i < entityManagerList.Count; i+=2){ %>
+         <div class="two fields">
+            <div class="field">
+                <div class="ui fluid labeled input">
+                    <div class="ui label"><%= GetDescription(entityManagerList[i]) %>:</div>    
+                    <input id="<%= entityManagerList[i].PropertyName %>" name="<%= entityManagerList[i].PropertyName %>" data-bind="value:<%= GetTableClassName(SourceTable) %>().<%= entityManagerList[i].PropertyName %>" type="text" disabled="" >
+                </div>  
+            </div>
+            <%if((i+1)<entityManagerList.Count){ %>
+            <div class="field">
+                <div class="ui fluid labeled input">  
+                    <div class="ui label"><%= GetDescription(entityManagerList[i]) %>:</div>   
+                    <input id="<%= entityManagerList[i+1].PropertyName %>" name="<%= entityManagerList[i+1].PropertyName %>" data-bind="value:<%= GetTableClassName(SourceTable) %>().<%= entityManagerList[i+1].PropertyName %>" type="text" disabled="" >
+                </div>
+            </div>
+            <%} %>
+        </div>
+      <% } %>
+    </div>
+
+</form>
+
+@section Script{
+<script type="text/javascript">
+        var detailViewModel = function () {
+            var self = this;
+            self.<%= GetTableClassName(SourceTable) %> = ko.observable();
+            
+            //初始化jquery插件等 
+            self.initControl = function() {
+            //初始化控件
+            
+            //button 切换效果
+                $("#switchingView").children("div").click(function () {
+                    $("#switchingView").children("div").removeClass("active");
+                    $(this).addClass("active");
+                    $(".form").hide();
+                    $(".form").eq($(this).attr("index")).show();
+                });
+            
+            };
+            
+            self.loadData = function () {
+                self.<%= GetTableClassName(SourceTable) %>(ViewBag.<%= GetTableClassName(SourceTable) %>); 
+                self.initControl();
+            };
+            
+        };
+
+        
+        $(function () {
+            var viewModel = new detailViewModel();
+            viewModel.loadData();
+            ko.applyBindings(viewModel);
+
+        });
+   </script>     
+}
