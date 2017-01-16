@@ -124,18 +124,14 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                     shade: [0.2, '#000'] //0.2透明度的黑色背景
                 });
                 $.post('@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>SaveEdit" })', { 'editItem': editItem }, function (result) {
-                    parent.layer.close(loadingIndex);
+                    layer.close(loadingIndex);
+                    layer.msg(result.Msg, {
+                        icon: result.Success ? 1 : 2,
+                        shift: 5
+                    });
+
                     if (result.Success) {
-                        layer.msg(result.Msg, {
-                            icon: 1,
-                            shift: 5
-                        });
                         setTimeout('closeCurrentDialog()', 500);
-                    } else {
-                        layer.msg(result.Msg, {
-                            icon: 2,
-                            shift: 5
-                        });
                     }
                 }, 'json');
             };
