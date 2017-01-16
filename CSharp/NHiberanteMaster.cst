@@ -96,6 +96,7 @@ Type="System.String"  Optional="False"  %>
 
 <%@ Register Name="ListCshtmlTemplate" Template="Cst\Manage_Mvc\list.cshtml.cst" %>
 <%@ Register Name="EditCshtmlTemplate" Template="Cst\Manage_Mvc\Edit.cshtml.cst" %>
+<%@ Register Name="DetailCshtmlTemplate" Template="Cst\Manage_Mvc\Detail.cshtml.cst" %>
 <%@ Register Name="ControllerTemplate" Template="Cst\Manage_Mvc\Controller.cs.cst" %>
 <script runat="template">
 //数据库类型
@@ -659,6 +660,25 @@ private void RenderManage(TableSchema table)
         }
         
          //详情 View
+        if(!table.Description.Contains("[noDetail]")){
+            //编辑 View
+            string detailAspxFileName = String.Format("{0}{1}Detail.cshtml", viewPath,GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(detailAspxFileName))
+            {
+                DetailCshtmlTemplate detailCshtmlTemplateObject = this.Create<DetailCshtmlTemplate>();
+                detailCshtmlTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                detailCshtmlTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                detailCshtmlTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                detailCshtmlTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                detailCshtmlTemplateObject.AssemblyName=this.AssemblyName;
+                
+                detailCshtmlTemplateObject.SourceTable = table;
+                
+                detailCshtmlTemplateObject.RenderToFile(GetOutputFile(detailAspxFileName, null), true);
+            }
+            
+        }
         
         #endregion
     }
