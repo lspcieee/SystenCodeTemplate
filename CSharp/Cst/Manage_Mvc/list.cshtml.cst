@@ -238,15 +238,15 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             initEvents: function (viewModel) {
                 //添加
                 viewModel.onAddClick = function (data, event) {
-                    window.top.layer.open({
+                    window.layer.open({
                         title: false,
-                        area: ['85%', '100%'],//全屏模式 如果不想要全屏模式 可以自己设置 宽度和高度 如area: ['800px', '600px'],删除 offset: 'rb'
+                        area: ['100%', '100%'],//全屏模式 如果不想要全屏模式 可以自己设置 宽度和高度 如area: ['800px', '600px'],删除 offset: 'rb'
                         offset: 'rb',
                         type: 2,
                         closeBtn: false,
                         content: ['@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>Edit" })',"no"], //这里content是一个URL，如果你不想让iframe出现滚动条，你还可以content: ['http://sentsin.com', 'no'],
                         end: function () {
-                            window.top.layer.close(index);
+                            window.layer.close(index);
                             viewModel.flushCurrentPage();
                         }
                     });
@@ -254,10 +254,10 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                 //修改
                 viewModel.onItemEditClick = function (data, event) {
                     var id = data.Id;
-                    window.top.layer.open({
+                    window.layer.open({
                         title: false,
                         closeBtn: false,
-                        area: ['85%', '100%'],
+                        area: ['100%', '100%'],
                         offset: 'rb',
                         type: 2,
                         content: ['@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>Edit" })/?id=' + data.Id, 'no'],
