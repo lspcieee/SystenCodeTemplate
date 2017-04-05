@@ -123,17 +123,29 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                 var loadingIndex = layer.load(0, {
                     shade: [0.2, '#000'] //0.2透明度的黑色背景
                 });
-                $.post('@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>SaveEdit" })', { 'editItem': editItem }, function (result) {
-                    layer.close(loadingIndex);
-                    layer.msg(result.Msg, {
-                        icon: result.Success ? 1 : 2,
-                        shift: 5
-                    });
-
-                    if (result.Success) {
-                        setTimeout('closeCurrentDialog()', 500);
+               $.ajax({
+                    url: "@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>SaveEdit" })",
+                    data: { 'editItem': editItem },
+                    type: "POST",
+                    dataType: 'json',
+                    success: function (result) {
+                        layer.close(loadingIndex);
+                        layer.msg(result.Msg, {
+                            icon: result.Success ? 1 : 2,
+                            shift: 5
+                        });
+                        if (result.Success) {
+                            setTimeout('closeCurrentDialog()', 500);
+                        }
+                    },
+                    error: function (er) {
+                       layer.close(loadingIndex);
+                        layer.msg('操作失败，服务器错误', {
+                            icon: 2,
+                            shift: 5
+                        });
                     }
-                }, 'json');
+                });
             };
              //保存按钮事件
             self.onSaveClick = function () {
@@ -154,7 +166,6 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             };
             
         };
-
         
         $(function () {
             var viewModel = new editViewModel();

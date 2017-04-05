@@ -94,7 +94,10 @@ namespace <%= this.AssemblyName %>.Controllers
             } %>
             //排序
             Order order = Order.Desc(<%= GetTableClassName(SourceTable) %>.ColumnNames.<%=primaryKeyName%>);
-            
+            //todo:逻辑删除过滤  可以直接删除
+            //ICriterion IsDeleteCriterion = Restrictions.Eq(<%= GetTableClassName(SourceTable) %>.ColumnNames.IsDelete, false));
+            //criterionList.Add(IsDeleteCriterion);
+                
             dataList = <%= GetTableClassName(SourceTable) %>Service.GetPagedList(pageSize, pageNumber, criterionList, order, ref pageCount).Select(
                 item =>
                 {
@@ -142,14 +145,14 @@ namespace <%= this.AssemblyName %>.Controllers
             if (id == 0)
             {
                 item = new <%= GetTableClassName(SourceTable) %>();
-                ViewBag.ActionType = "add"; 
+               //ViewBag.ActionType = "add"; 
                 ViewBag.Title = "新增<%= ClearNote(SourceTable.Description) %>";
             }
             else
             {
             
                 item = <%= GetTableClassName(SourceTable) %>Service.Get(id);
-                ViewBag.ActionType = "update"; 
+                //ViewBag.ActionType = "update"; 
                 ViewBag.Title ="<%= ClearNote(SourceTable.Description) %>编辑";
             }  
             var viewBagItem = new

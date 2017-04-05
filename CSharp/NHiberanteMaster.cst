@@ -62,6 +62,7 @@ Type="System.String"  Optional="False"  %>
 <%@ Register Name="MySqlServiceTemplate" Template="Cst\Service\Dialect\MySqlService.cst" %>
 <%@ Register Name="OracleServiceTemplate" Template="Cst\Service\Dialect\OracleService.cst" %>
 <%@ Register Name="SqlServerServiceTemplate" Template="Cst\Service\Dialect\SqlServerService.cst" %>
+<%@ Register Name="SqliteServerServiceTemplate" Template="Cst\Service\Dialect\SqliteServerService.cst" %>
 
 <%@ Register Name="ViewsWebConfigTemplate" Template="Cst\Views\WebConfig.cst" %>
 <%@ Register Name="ViewStartTemplate" Template="Cst\Views\_ViewStart.cshtml.cst" %>
@@ -104,7 +105,8 @@ public enum DatabaseTypeEnum
 {
     SqlServer,
     MySql,
-    Oracle
+    Oracle,
+    Sqlite
 }
 //生成页面 类型
 public enum PageTypeEnum{
@@ -202,7 +204,7 @@ private void RenderPackagesConfig()
 private void RenderModuleCs()
 {
          // 生成模块配置文件
-    string moduleConfigFileName = String.Format("{0}Module.cs", GetLastAssemblyName());
+    string moduleConfigFileName = String.Format("{0}Module.cs",this.ModuleCategory);
    
     if(!File.Exists(moduleConfigFileName)){
         ModuleCsTemplate csprojTemplateObject = this.Create<ModuleCsTemplate>(); 
@@ -219,7 +221,7 @@ private void RenderModuleCs()
 private void RenderManagePermissions()
 {
      // 生成模块配置文件
-    string moduleConfigFileName = String.Format("{0}ManagePermissions.cs", GetLastAssemblyName());
+    string moduleConfigFileName = String.Format("{0}ManagePermissions.cs", this.ModuleCategory);
         //检测配置文件已存在，则生成.bak文件，手动合并
     if(File.Exists(moduleConfigFileName)){
         moduleConfigFileName += ".generated";
@@ -759,7 +761,20 @@ private void RenderService(TableSchema table)
         
 		oracleServiceTemplateObject.RenderToFile(GetOutputFile(dialectOracleServiceFileName, null), true);
     }
-	
+    
+	string dialectSqliteServiceFileName = String.Format("{0}{1}SqliteService.cs", GetFolder(@"Service\Dialect\Sqlite"), GetTableClassName(table));
+    //检测是否存在，存在的文件不再生成
+    if(!File.Exists(dialectSqliteServiceFileName))
+    {
+        SqliteServerServiceTemplate sqliteServerServiceTemplateObject = this.Create<SqliteServerServiceTemplate>();
+		sqliteServerServiceTemplateObject.ServiceNamespace = this.ServiceNamespace;
+        sqliteServerServiceTemplateObject.IServiceNamespace = this.IServiceNamespace;
+        sqliteServerServiceTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+        sqliteServerServiceTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+		sqliteServerServiceTemplateObject.SourceTable = table;
+        
+		sqliteServerServiceTemplateObject.RenderToFile(GetOutputFile(dialectSqliteServiceFileName, null), true);
+    }
 }
 
 private void RegisterReferences()

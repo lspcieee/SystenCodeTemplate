@@ -86,7 +86,7 @@ namespace <%= EntitiesNamespace %>
         /// <summary>
         /// 数据库表名
         /// </summary>
-        public static readonly string TableName = "<%= SourceTable %>";
+        public static readonly string TableName = "<%= SourceTable.Name %>";
         
 		/// <summary>
         /// 实体名称
