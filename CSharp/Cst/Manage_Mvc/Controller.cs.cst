@@ -187,15 +187,24 @@ namespace <%= this.AssemblyName %>.Controllers
        public JsonResult <%=GetTableClassName(SourceTable)%>SaveEdit(<%= GetTableClassName(SourceTable) %>  editItem){
             //如果id存在 就修改 否则添加
             if(editItem.Id>0){
+                <%= GetTableClassName(SourceTable) %>  editInfo=<%= GetTableClassName(SourceTable) %>Service.Get(editItem.Id);            
+                if (editInfo == null || editInfo.Id < 1)
+                {
+                    return Json(new { Success = false, Msg = "错误，未找到信息" }, JsonRequestBehavior.AllowGet);
+                }
+              <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) {%>
+                editInfo.<%=em.PropertyName%>=editItem.<%=em.PropertyName%>;
+               <%} %>
+               
+              <%= GetTableClassName(SourceTable) %>Service.Session.Evict(editInfo);
               <%= GetTableClassName(SourceTable) %>Service.Update(editItem);
             
-              return Json(new { Success = true, Msg = "修改成功" }, JsonRequestBehavior.AllowGet);
+              return Json(new { Success = true, Msg = "操作成功，已修改" }, JsonRequestBehavior.AllowGet);
             }
-            else{
-               <%= GetTableClassName(SourceTable) %>Service.Add(editItem);
-            
-              return Json(new { Success = true, Msg = "添加成功" }, JsonRequestBehavior.AllowGet);
-            }
+                        
+              <%= GetTableClassName(SourceTable) %>Service.Add(editItem);            
+              return Json(new { Success = true, Msg = "操作成功，已添加" }, JsonRequestBehavior.AllowGet);
+           
        }
        
         /// <summary>
