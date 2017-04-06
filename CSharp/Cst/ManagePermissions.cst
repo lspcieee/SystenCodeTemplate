@@ -61,8 +61,8 @@ namespace <%=this.AssemblyName %>
                 /// <summary>
                 /// 编辑保存
                 /// </summary>
-                [Operation(Name = "编辑保存", Key = "<%=tableName%>/Update")]
-                public struct Update { }
+                [Operation(Name = "编辑保存", Key = "<%=tableName%>/<%=tableName%>SaveEdit")]
+                public struct SaveUpdate { }
                 <%} %>
                    <%if(!table.Description.Contains("[noDelete]")){ %>
                 /// <summary>
