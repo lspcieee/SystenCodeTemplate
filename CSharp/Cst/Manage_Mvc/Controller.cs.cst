@@ -198,35 +198,8 @@ namespace <%= this.AssemblyName %>.Controllers
             }
        }
        
-       
-       /// <summary>
-       /// 删除数据项
-       ///todo:逻辑删除 字段未指定，需要手动调整
-       /// </summary>
-       public JsonResult <%= GetTableClassName(SourceTable) %>Delete(int id){
-              if(id<0){return Json(new { Success = false, Msg = "参数错误" }, JsonRequestBehavior.AllowGet);}
-                //直接删除
-                //<%= GetTableClassName(SourceTable) %>Service.BatchDelete(new List<object>(){id});
-               //逻辑删除
-              //<%= GetTableClassName(SourceTable) %> delItem=<%= GetTableClassName(SourceTable) %>Service.Get(id);
-              //delItem.IsDelete=true;
-              //<%= GetTableClassName(SourceTable) %>Service.Update(delItem);
-              
-             
-              
-             <%if(isDelete){ %>
-                //直接删除
-                <%= GetTableClassName(SourceTable) %>Service.BatchDelete(new List<object>(){id});
-             <%} else{ %>
-                  //逻辑删除
-                  <%= GetTableClassName(SourceTable) %> delItem=<%= GetTableClassName(SourceTable) %>Service.Get(id);
-                  delItem.IsDelete=true;
-                  <%= GetTableClassName(SourceTable) %>Service.Update(delItem);
-             <%} %>
-         return Json(new { Success = true, Msg = "删除成功" }, JsonRequestBehavior.AllowGet);
-       }
         /// <summary>
-       /// 批量删除数据项
+       /// 删除 统一调用 
        ///todo:逻辑删除 字段未指定，需要手动调整
        /// </summary>
        public JsonResult <%= GetTableClassName(SourceTable) %>BatchDelete(int[] idList){

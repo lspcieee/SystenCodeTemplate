@@ -59,16 +59,16 @@ namespace <%=this.AssemblyName %>
                 public struct Edit { }
 
                 /// <summary>
-                /// 编辑
+                /// 编辑保存
                 /// </summary>
-                [Operation(Name = "保存编辑", Key = "<%=tableName%>/Update")]
+                [Operation(Name = "编辑保存", Key = "<%=tableName%>/Update")]
                 public struct Update { }
                 <%} %>
                    <%if(!table.Description.Contains("[noDelete]")){ %>
                 /// <summary>
                 /// 删除
                 /// </summary>
-                [Operation(Name = "删除", Key = "<%=tableName%>/Delete")]
+                [Operation(Name = "删除", Key = "<%=tableName%>/BatchDelete")]
                 public struct Del { }
                 <%} %>
 

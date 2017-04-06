@@ -135,7 +135,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                             shift: 5
                         });
                         if (result.Success) {
-                            setTimeout('closeCurrentDialog()', 500);
+                            setTimeout('closeCurrentDialog()',1000);
                         }
                     },
                     error: function (er) {
