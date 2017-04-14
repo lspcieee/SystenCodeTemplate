@@ -46,8 +46,8 @@ Type="System.String"  Optional="False"  %>
   <ClassName><%= AssemblyName+"."+ModuleClassName%></ClassName>
   <AutoActivate>True</AutoActivate>
   <!--状态信息-->
-  <Enabled>True</Enabled>
-  <Installed>False</Installed>
+  <Enabled Description="是否启用该模块">True</Enabled>
+  <Installed Description="是否初始化菜单">False</Installed>
   <InsertTimeStamp></InsertTimeStamp>
   <UpdateTimeStamp></UpdateTimeStamp>
 </ModuleConfig>

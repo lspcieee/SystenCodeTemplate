@@ -47,7 +47,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
         <a class="section"> <%= ClearNote(SourceTable.Description) %>列表</a>
         <i class="right chevron icon divider"></i>
         <button class="tiny ui teal button" data-bind="click:$root.onAddClick">
-            <i class="plus out"></i>添加<%= ClearNote(SourceTable.Description) %>
+            <i class="plus out icon"></i>添加<%= ClearNote(SourceTable.Description) %>
         </button>
     </div>
 </div>
@@ -197,8 +197,9 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
 <!--表格 end-->
 @section Script{
 <script type="text/javascript">
+        var rootUrl="/Modules/<%=this.AssemblyName %>/<%= GetTableClassName(SourceTable) %>";
         var options = {
-            getListUrl: '@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>List" })',
+            getListUrl: rootUrl+'/<%= GetTableClassName(SourceTable) %>List',
             //height: 200,
             rowList: [10, 20, 30],
             colModel: [
@@ -244,9 +245,8 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                         offset: 'rb',//动画，要可以不要 
                         type: 2,
                         closeBtn: false,
-                        content: ['@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>Edit" })',"no"], //这里content是一个URL，如果你不想让iframe出现滚动条，你还可以content: ['http://sentsin.com', 'no'],
+                        content: [rootUrl+'/<%= GetTableClassName(SourceTable) %>Add',"no"], //这里content是一个URL，如果你不想让iframe出现滚动条，你还可以content: ['http://sentsin.com', 'no'],
                         end: function () {
-                            //window.layer.close(index);
                             viewModel.flushCurrentPage();
                         }
                     });
@@ -260,7 +260,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                         area: ['100%', '100%'],
                         offset: 'rb',//动画，要可以不要 
                         type: 2,
-                        content: ['@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>Edit" })/?id=' + data.Id, 'no'],
+                        content: [rootUrl+'/<%= GetTableClassName(SourceTable) %>Edit/?id=' + data.Id, 'no'],
                         end: function () {
                             viewModel.flushCurrentPage();
                         }
@@ -290,9 +290,9 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                 };
                 //统一删除方法
                 viewModel.DeleteItem = function (idList, message) {
-                    window.layer.confirm(message, { icon: 3 }, function (index) {
+                    layer.confirm(message, { icon: 3 }, function (index) {
                         $.ajax({
-                            url: "@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>BatchDelete" })",
+                            url: rootUrl+"/<%= GetTableClassName(SourceTable) %>BatchDelete",
                             data: { 'idList': idList },
                             type: "POST",
                             dataType: 'json',
@@ -301,7 +301,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                                     icon: result.Success ? 1 : 2,
                                     shift: 5
                                 });
-                                window.layer.close(index);
+                                layer.close(index);
                                 viewModel.flushCurrentPage();
                             },
                             error: function (er) { layer.msg('服务器错误，操作失败！', { icon: 2, shift: 5 }); }

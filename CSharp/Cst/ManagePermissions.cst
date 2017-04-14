@@ -29,7 +29,7 @@ namespace <%=this.AssemblyName %>
         /// <summary>
         /// 该模块左侧菜单
         /// </summary>
-        [ManageMenu(Name = "模块管理", Key = "manage/<%=GetLastAssemblyName()%>ManageMenu", Link = "")]
+        [ManageMenu(Name = "模块管理", Key = "manage/<%=GetLastAssemblyName()%>ManageMenu", Link = "",Icon ="")]
         public struct <%=GetLastAssemblyName()%>ManageMenu
         {      
             <%
@@ -48,8 +48,14 @@ namespace <%=this.AssemblyName %>
                 /// <summary>
                 /// 添加
                 /// </summary>
-                [Operation(Name = "添加", Key = "<%=tableName%>/Add")]
+                [Operation(Name = "添加", Key = "<%=tableName%>/<%=tableName%>Add"]
                 public struct Add { }
+                 /// <summary>
+                /// 新增保存
+                /// </summary>
+                [Operation(Name = "新增保存", Key = "<%=tableName%>/<%=tableName%>SaveAdd")]
+                public struct SaveAdd { }
+                
                 <%} %>
                 <%if(!table.Description.Contains("[noEdit]")){ %>
                 /// <summary>
