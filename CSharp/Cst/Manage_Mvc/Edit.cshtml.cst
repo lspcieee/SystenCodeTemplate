@@ -59,7 +59,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
          <div class="two fields">
            <div class="<%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>required <% } %> field">
                 <label><%= GetDescription(entityManagerList[i]) %>:</label>
-                <div class="ui left icon small input">
+                <div class="ui left icon input">
                     <input id="<%= entityManagerList[i].PropertyName %>" name="<%= entityManagerList[i].PropertyName %>" data-bind="value:<%= GetTableClassName(SourceTable) %>().<%= entityManagerList[i].PropertyName %>" type="text"  <%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>class="validate-input" <% } %> >
                     <i class="pencil icon"></i>
                 </div>
@@ -67,7 +67,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             <%if((i+1)<entityManagerList.Count){ %>
             <div class="<%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>required <% } %>field">
                 <label><%=GetDescription(entityManagerList[i+1]) %>:</label>
-                <div class="ui left icon small input">
+                <div class="ui left icon input">
                     <input id="<%= entityManagerList[i+1].PropertyName %>" name="<%= entityManagerList[i+1].PropertyName %>" data-bind="value:<%= GetTableClassName(SourceTable) %>().<%= entityManagerList[i+1].PropertyName %>" type="text" <%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>class="validate-input" <% } %>>
                     <i class="pencil icon"></i>
                 </div>

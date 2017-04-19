@@ -48,7 +48,7 @@ namespace <%=this.AssemblyName %>
                 /// <summary>
                 /// 添加
                 /// </summary>
-                [Operation(Name = "添加", Key = "<%=tableName%>/<%=tableName%>Add"]
+                [Operation(Name = "添加", Key = "<%=tableName%>/<%=tableName%>Add")]
                 public struct Add { }
                  /// <summary>
                 /// 新增保存
