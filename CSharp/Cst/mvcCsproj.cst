@@ -71,7 +71,7 @@ Assembly that will contain the business objects." %>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-        <Reference Include="Castle.Core">
+    <Reference Include="Castle.Core">
       <HintPath>..\..\..\..\Lib\Castle\Castle.Core.dll</HintPath>
     </Reference>
     <Reference Include="Castle.Facilities.NHibernateIntegration">
@@ -80,6 +80,9 @@ Assembly that will contain the business objects." %>
     <Reference Include="NHibernate, Version=3.2.0.4000, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\Lib\NHibernate\NHibernate.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Mvc">
+      <HintPath>..\..\..\packages\Microsoft.AspNet.Mvc.5.2.3\lib\net45\System.Web.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="<%= FrameworkNamespace%>">
       <HintPath>..\..\..\..\Lib\<%= FrameworkNamespace%>.dll</HintPath>
@@ -103,7 +106,7 @@ Assembly that will contain the business objects." %>
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web.Services" />
     <Reference Include="System.EnterpriseServices" />
-      <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <Private>True</Private>
       <HintPath>..\..\..\..\Lib\MVC\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
@@ -116,53 +119,19 @@ Assembly that will contain the business objects." %>
     </Reference>
     <Reference Include="System.Net.Http">
     </Reference>
-    <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\Lib\MVC\csproj\System.Net.Http.Formatting.dll</HintPath>
-    </Reference>
     <Reference Include="System.Net.Http.WebRequest">
     </Reference>
-    <Reference Include="System.Web.Helpers, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <Private>True</Private>
-      <HintPath>..\..\..\..\Lib\MVC\csproj\System.Web.Helpers.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\Lib\MVC\csproj\System.Web.Http.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.Http.WebHost, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\Lib\MVC\csproj\System.Web.Http.WebHost.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.Mvc, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\Lib\MVC\csproj\System.Web.Mvc.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <Private>True</Private>
-      <HintPath>..\..\..\..\Lib\MVC\csproj\System.Web.Razor.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <Private>True</Private>
-      <HintPath>..\..\..\..\Lib\MVC\csproj\System.Web.WebPages.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.WebPages.Deployment, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <Private>True</Private>
-      <HintPath>..\..\..\..\Lib\MVC\csproj\System.Web.WebPages.Deployment.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <Private>True</Private>
-      <HintPath>..\..\..\..\Lib\MVC\csproj\System.Web.WebPages.Razor.dll</HintPath>
-    </Reference>  
     <Reference Include="Systen.Framework">
       <HintPath>..\..\..\..\Lib\framework\Systen.Framework.dll</HintPath>
     </Reference>
     <Reference Include="Systen.Util, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\Lib\framework\Systen.Util.dll</HintPath>
-    </Reference> 
-     <Reference Include="Webdiyer.MvcPager, Version=3.0.2015.521, Culture=neutral, processorArchitecture=MSIL">
+    </Reference>
+    <Reference Include="Webdiyer.MvcPager, Version=3.0.2015.521, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\Lib\MVC\Webdiyer.MvcPager.dll</HintPath>
     </Reference>
- 
   </ItemGroup>
   <ItemGroup>
    <Compile Include="Properties\AssemblyInfo.cs" />
@@ -177,6 +146,7 @@ Assembly that will contain the business objects." %>
     <Compile Include="IService\I<%=tableName%>Service.cs" />
     <Compile Include="Service\Dialect\SqlServer\<%=tableName%>SqlServerService.cs" />
     <Compile Include="Service\Dialect\MySql\<%=tableName%>MySqlService.cs" />
+    <Compile Include="Service\Dialect\Sqlite\<%=tableName%>SqliteService.cs" />
     <Compile Include="Service\Dialect\Oracle\<%=tableName%>OracleService.cs" />
     <%if(!table.Description.Contains("[noList]")){ %>      
     <Compile Include="Controllers\<%=tableName%>Controller.cs" />

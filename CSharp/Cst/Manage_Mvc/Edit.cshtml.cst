@@ -59,7 +59,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
          <div class="two fields">
            <div class="<%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>required <% } %> field">
                 <label><%= GetDescription(entityManagerList[i]) %>:</label>
-                <div class="ui left icon small input">
+                <div class="ui left icon input">
                     <input id="<%= entityManagerList[i].PropertyName %>" name="<%= entityManagerList[i].PropertyName %>" data-bind="value:<%= GetTableClassName(SourceTable) %>().<%= entityManagerList[i].PropertyName %>" type="text"  <%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>class="validate-input" <% } %> >
                     <i class="pencil icon"></i>
                 </div>
@@ -67,7 +67,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             <%if((i+1)<entityManagerList.Count){ %>
             <div class="<%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>required <% } %>field">
                 <label><%=GetDescription(entityManagerList[i+1]) %>:</label>
-                <div class="ui left icon small input">
+                <div class="ui left icon input">
                     <input id="<%= entityManagerList[i+1].PropertyName %>" name="<%= entityManagerList[i+1].PropertyName %>" data-bind="value:<%= GetTableClassName(SourceTable) %>().<%= entityManagerList[i+1].PropertyName %>" type="text" <%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>class="validate-input" <% } %>>
                     <i class="pencil icon"></i>
                 </div>
@@ -78,7 +78,12 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
     </div>
     <div>
         <div class="bottom-btn-box">
-            <button class="ui twitter  button" data-bind="click:onSaveClick"><i class="checkmark icon"></i>保存</button>
+            <!--ko ifnot:IsUpdate -->
+            <span class="ui twitter  button" data-bind="click:onAddSaveClick"><i class="checkmark icon"></i>添加</span>
+            <!--/ko-->
+            <!--ko if:IsUpdate -->
+            <span class="ui twitter  button" data-bind="click:onUpdateSaveClick"><i class="checkmark icon"></i>保存</span>
+            <!--/ko-->
             <button class="ui button" data-bind="click:onCloseDialog"><i class="remove icon"></i>取消</button>
         </div>
     </div>
@@ -87,10 +92,11 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
 
 @section Script{
 <script type="text/javascript">
+        var rootUrl="/Modules/<%=this.AssemblyName %>/<%= GetTableClassName(SourceTable) %>";
         var editViewModel = function () {
             var self = this;
             self.<%= GetTableClassName(SourceTable) %> = ko.observable();
-            
+            self.IsUpdate = ko.observable(false);
             //初始化jquery插件等 
             self.initControl = function() {
             //初始化控件
@@ -115,32 +121,70 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
               
               
             };
-            //提交数据
-            self.submitData = function () {
+            //自定义验证
+            self.Validate = function () {
+                 //获取
+                //var editItem = self.SingleArticleManage();
+                //if 条件，提示  根据实际情况操作
+                //layer.tips('请填写文章标题', '#SingleArticleTitle', {
+                //        tips: [2, '#78BA32'],
+                //        tipsMore: true,
+                 //   });
+                 //   $("#SingleArticleTitle").focus();
+               return true;
+            }
+            //提交数据 地址,回掉函数 fun 未调用，根据情况调配
+            self.submitData=function(action,fun) {
                 //获取
                 var editItem = self.<%= GetTableClassName(SourceTable) %>();
-
-                $.post('@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>SaveEdit" })', { 'editItem': editItem }, function (result) {
-                    if (result.Success) {
+                //loading层
+                var loadingIndex = layer.load(0, {
+                    shade: [0.2, '#000'] //0.2透明度的黑色背景
+                });
+               $.ajax({
+                    url: rootUrl+"/"+action,
+                    data: { 'editItem': editItem },
+                    type: "POST",
+                    dataType: 'json',
+                    success: function (result) {
+                        layer.close(loadingIndex);
                         layer.msg(result.Msg, {
-                            icon: 1,
+                            icon: result.Success ? 1 : 2,
                             shift: 5
                         });
-                        setTimeout('closeCurrentDialog()', 500);
-                    } else {
-                        layer.msg(result.Msg, {
+                        if (result.Success) {
+                            setTimeout('closeCurrentDialog()',800);
+                        }
+                    },
+                    error: function (er) {
+                       layer.close(loadingIndex);
+                        layer.msg('操作失败，服务器错误', {
                             icon: 2,
                             shift: 5
                         });
                     }
-                }, 'json');
-            };
+                }); 
+            }；
              //保存按钮事件
-            self.onSaveClick = function () {
+            self.onAddSaveClick = function () {
+                //默认验证，如果需要自定义验证 添加 self.Validate() 统一验证
+                //列：if($("#EditForm").valid()self.Validate())
                 if ($("#EditForm").valid()) {
-                    self.submitData();
+                //如果有特殊处理，添加回调函数
+                   self.submitData("<%= GetTableClassName(SourceTable) %>SaveAdd",null);
                 }
             };
+            //修改保存
+            self.onUpdateSaveClick = function () {
+                //默认验证，如果需要自定义验证 添加 self.Validate() 统一验证
+                //列：if($("#EditForm").valid() self.Validate())
+                if ($("#EditForm").valid()) {
+                //如果有特殊处理，添加回调函数
+                    self.submitData("<%= GetTableClassName(SourceTable) %>SaveEdit",null);
+                }
+                
+            };
+            
             //关闭按钮事件
             self.onCloseDialog = function () {
                 var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
@@ -149,12 +193,12 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             
             self.loadData = function () {
                 self.<%= GetTableClassName(SourceTable) %>(ViewBag.<%= GetTableClassName(SourceTable) %>); 
+                self.IsUpdate(ViewBag.IsUpdate);
                 self.initControl();
                 self.initValidate();
             };
             
         };
-
         
         $(function () {
             var viewModel = new editViewModel();

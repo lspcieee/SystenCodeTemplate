@@ -28,11 +28,10 @@ Description: 服务映射配置文件
         string className=GetTableClassName(table);
     %>
     <component id="<%=className%>Service"
-        service="<%=this.IServiceNamespace%>.I<%=className%>Service, <%=this.AssemblyName%>"
-        type="<%=this.ServiceNamespace%>.Dialect.<%=className%><%=DatabaseType%>Service, <%=this.AssemblyName%>" />
-      <%if(!table.Description.Contains("[noList]")){ %>        
-        <component id="<%=this.AssemblyName%>_<%=className%>"
-   type="<%=this.AssemblyName%>.Controllers.<%=className%>Controller, <%=this.AssemblyName%>"  />
+        service="<%=this.IServiceNamespace%>.I<%=className%>Service, <%=this.AssemblyName%>" type="<%=this.ServiceNamespace%>.Dialect.<%=className%><%=DatabaseType%>Service, <%=this.AssemblyName%>" />
+   <%if(!table.Description.Contains("[noList]")){ %>        
+    <component id="<%=this.AssemblyName%>_<%=className%>" type="<%=this.AssemblyName%>.Controllers.<%=className%>Controller, <%=this.AssemblyName%>"  />
+   
     <%}}%>
 
 

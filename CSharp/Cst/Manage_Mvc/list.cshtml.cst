@@ -47,7 +47,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
         <a class="section"> <%= ClearNote(SourceTable.Description) %>列表</a>
         <i class="right chevron icon divider"></i>
         <button class="tiny ui teal button" data-bind="click:$root.onAddClick">
-            <i class="plus out"></i>添加<%= ClearNote(SourceTable.Description) %>
+            <i class="plus out icon"></i>添加<%= ClearNote(SourceTable.Description) %>
         </button>
     </div>
 </div>
@@ -197,20 +197,21 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
 <!--表格 end-->
 @section Script{
 <script type="text/javascript">
+        var rootUrl="/Modules/<%=this.AssemblyName %>/<%= GetTableClassName(SourceTable) %>";
         var options = {
-            getListUrl: '@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>List" })',
+            getListUrl: rootUrl+'/<%= GetTableClassName(SourceTable) %>List',
             //height: 200,
             rowList: [10, 20, 30],
             colModel: [
-             { name: '<div class="ui checkbox"><input type="checkbox" /><label></label></div>', width: '3%' },
+               { name: '<div class="ui checkbox"><input type="checkbox" /><label></label></div>', width: '3%' },
                 <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
                         if(DescriptionContains(em,"[list]")) { 
                         %>
-                           { name: '<%=GetDescription(em) %>', width: '10%' },   
+               { name: '<%=GetDescription(em) %>', width: '10%' },   
                         <%
                         }
                    } %>
-                { name: '管理', width: '10%' }
+               { name: '管理', width: '10%' }
             ],
             //搜索条件
             searchPara: {
@@ -238,14 +239,14 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             initEvents: function (viewModel) {
                 //添加
                 viewModel.onAddClick = function (data, event) {
-                    window.top.layer.open({
+                    window.layer.open({
                         title: false,
-                        area: ['800px', '600px'],
+                        area: ['100%', '100%'],//如area: ['800px', '600px'],删除 offset: 'rb'
+                        offset: 'rb',//动画，要可以不要 
                         type: 2,
                         closeBtn: false,
-                        content: ['@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>Edit" })',"no"], //这里content是一个URL，如果你不想让iframe出现滚动条，你还可以content: ['http://sentsin.com', 'no'],
+                        content: [rootUrl+'/<%= GetTableClassName(SourceTable) %>Add',"no"], //这里content是一个URL，如果你不想让iframe出现滚动条，你还可以content: ['http://sentsin.com', 'no'],
                         end: function () {
-                            window.top.layer.close(index);
                             viewModel.flushCurrentPage();
                         }
                     });
@@ -253,12 +254,13 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                 //修改
                 viewModel.onItemEditClick = function (data, event) {
                     var id = data.Id;
-                    window.top.layer.open({
+                    window.layer.open({
                         title: false,
                         closeBtn: false,
-                        area: ['800px', '600px'],
+                        area: ['100%', '100%'],
+                        offset: 'rb',//动画，要可以不要 
                         type: 2,
-                        content: ['@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>Edit" })/?id=' + data.Id, 'no'],
+                        content: [rootUrl+'/<%= GetTableClassName(SourceTable) %>Edit/?id=' + data.Id, 'no'],
                         end: function () {
                             viewModel.flushCurrentPage();
                         }
@@ -271,52 +273,38 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                     $(".body-box div.checkbox input:checked").each(function () {
                         idList.push($(this).val());
                     });
-                    
-                    window.top.layer.confirm('你确定删除所有勾选？', { icon: 1 }, function (index) {
+                   
+                    if (idList.length > 1) {
+                       viewModel.DeleteItem(idList, "你确定删除所有勾选？");
+                    }
+                    else{
+                     layer.msg("请先选择要删除的数据", { icon: 2, shift: 5 });
+                        return;
+                    }                   
+                };
+                //删除
+                viewModel.onItemDeleteClick = function (data, event) {
+                    var idList = new Array();
+                    idList.push(data.Id);
+                    viewModel.currencyDelete(idList, "你确定删除该标签？");
+                };
+                //统一删除方法
+                viewModel.DeleteItem = function (idList, message) {
+                    layer.confirm(message, { icon: 3 }, function (index) {
                         $.ajax({
-                            url: "@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>BatchDelete" })",
+                            url: rootUrl+"/<%= GetTableClassName(SourceTable) %>BatchDelete",
                             data: { 'idList': idList },
                             type: "POST",
                             dataType: 'json',
                             success: function (result) {
-                                 layer.msg(result.Msg, {
+                                layer.msg(result.Msg, {
                                     icon: result.Success ? 1 : 2,
                                     shift: 5
                                 });
-                                window.top.layer.close(index);
+                                layer.close(index);
                                 viewModel.flushCurrentPage();
                             },
-                            error: function (er) {
-                                layer.msg('删除失败！！', {
-                                    icon: 2,
-                                    shift: 5
-                                });
-                            }
-                        });
-                    });
-                };
-                //删除
-                viewModel.onItemDeleteClick = function (data, event) {
-                    window.top.layer.confirm('你确定删除？', { icon: 1 }, function (index) {
-                        $.ajax({
-                            url: "@Url.RouteUrl("Modules", new { Action = "<%= GetTableClassName(SourceTable) %>Delete" })",
-                            data: { 'id': data.Id },
-                            type: "POST",
-                            dataType: 'json',
-                            success: function (result) {
-                                 layer.msg(result.Msg, {
-                                    icon: result.Success ? 1 : 2,
-                                    shift: 5
-                                });
-                                window.top.layer.close(index);
-                                viewModel.flushCurrentPage();
-                            },
-                            error: function (er) {
-                                layer.msg('删除失败！！', {
-                                    icon: 2,
-                                    shift: 5
-                                });
-                            }
+                            error: function (er) { layer.msg('服务器错误，操作失败！', { icon: 2, shift: 5 }); }
                         });
                     });
                 };

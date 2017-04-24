@@ -10,6 +10,7 @@ Description: 项目文件生成（vs2010 sp1,c#4.5）
 <%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
 <%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
 <%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+<%@ Property Name="ModuleCategory" Default="Core" Category="5. 模块配置" Description="种类" Type="System.String"  Optional="False"  %>
 
 <%@ Assembly Name="SchemaExplorer" %>
 <%@ Assembly Name="System.Data" %>
@@ -30,9 +31,9 @@ using Systen.Framework.Module.Menu;
 
 namespace <%=this.AssemblyName %>
 {
-    public class <%=GetLastAssemblyName(this.AssemblyName)%>Module : ModuleBase
+    public class <%=this.ModuleCategory%>Module : ModuleBase
     {
-        public <%=GetLastAssemblyName(this.AssemblyName)%>Module()
+        public <%=this.ModuleCategory%>Module()
         {
        
         }
