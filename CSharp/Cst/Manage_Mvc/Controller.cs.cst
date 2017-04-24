@@ -78,6 +78,13 @@ namespace <%= this.AssemblyName %>.Controllers
             }
             
             var criterionList = new List<ICriterion>();
+			
+			//linq的方式添加条件
+			//ICriterion equalCriterion1 = Restrictions.Where<<%= GetTableClassName(SourceTable) %>>(d => d.ParentName == "上级部门名称");
+			//criterionList.Add(equalCriterion1);
+
+			//另外一种添加方式
+			//criterionList.Add(new LikeExpression(<%= GetTableClassName(SourceTable) %>.ColumnNames.Name, "部门名称"));
             <%-- 根据数据库中的标记生成对应要搜索的字段--%>
             <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
                     if(DescriptionContains(em,"[search]")){
