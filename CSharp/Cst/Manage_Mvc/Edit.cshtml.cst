@@ -164,7 +164,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                         });
                     }
                 }); 
-            }；
+            };
              //保存按钮事件
             self.onAddSaveClick = function () {
                 //默认验证，如果需要自定义验证 添加 self.Validate() 统一验证

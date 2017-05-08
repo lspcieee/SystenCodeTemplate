@@ -286,7 +286,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                 viewModel.onItemDeleteClick = function (data, event) {
                     var idList = new Array();
                     idList.push(data.Id);
-                    viewModel.currencyDelete(idList, "你确定删除该标签？");
+                    viewModel.DeleteItem(idList, "你确定删除该数据？");
                 };
                 //统一删除方法
                 viewModel.DeleteItem = function (idList, message) {

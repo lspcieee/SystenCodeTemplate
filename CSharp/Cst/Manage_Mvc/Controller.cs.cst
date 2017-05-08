@@ -172,6 +172,9 @@ namespace <%= this.AssemblyName %>.Controllers
 			 //id
              item.Id,
             };
+             //xmlData 使用示例
+            // Dictionary<string, string> auditStatusList = IocHelper.Resolve<ArticleModule>().XmlDataCenter.GetData("AuditStatusType");
+            //editItem.AuditStatusName = auditStatusList[editItem.AuditStatusId.ToString()];
             ViewBag.<%= GetTableClassName(SourceTable) %> = viewBagItem;
             return View("<%=GetTableClassName(SourceTable)%>Edit");
          }
@@ -217,6 +220,9 @@ namespace <%= this.AssemblyName %>.Controllers
 			 //id
              item.Id,
             };
+             //xmlData 使用示例
+            // Dictionary<string, string> auditStatusList = IocHelper.Resolve<ArticleModule>().XmlDataCenter.GetData("AuditStatusType");
+            //editItem.AuditStatusName = auditStatusList[editItem.AuditStatusId.ToString()];
             ViewBag.<%= GetTableClassName(SourceTable) %> = viewBagItem;
             return View();
        } 
