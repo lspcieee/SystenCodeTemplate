@@ -60,7 +60,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
            <div class="<%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>required <% } %> field">
                 <label><%= GetDescription(entityManagerList[i]) %>:</label>
                 <div class="ui left icon input">
-                    <input id="<%= entityManagerList[i].PropertyName %>" name="<%= entityManagerList[i].PropertyName %>" data-bind="value:<%= GetTableClassName(SourceTable) %>().<%= entityManagerList[i].PropertyName %>" type="text"  <%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>class="validate-input" <% } %> >
+                    <input id="<%= entityManagerList[i].PropertyName %>" name="<%= entityManagerList[i].PropertyName %>" data-bind="value:<%= GetTableClassName(SourceTable) %>().<%= entityManagerList[i].PropertyName %>" type="text"  <%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>class="validate-input" <% } %>  />
                     <i class="pencil icon"></i>
                 </div>
             </div>
@@ -68,7 +68,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             <div class="<%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>required <% } %>field">
                 <label><%=GetDescription(entityManagerList[i+1]) %>:</label>
                 <div class="ui left icon input">
-                    <input id="<%= entityManagerList[i+1].PropertyName %>" name="<%= entityManagerList[i+1].PropertyName %>" data-bind="value:<%= GetTableClassName(SourceTable) %>().<%= entityManagerList[i+1].PropertyName %>" type="text" <%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>class="validate-input" <% } %>>
+                    <input id="<%= entityManagerList[i+1].PropertyName %>" name="<%= entityManagerList[i+1].PropertyName %>" data-bind="value:<%= GetTableClassName(SourceTable) %>().<%= entityManagerList[i+1].PropertyName %>" type="text" <%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>class="validate-input" <% } %> />
                     <i class="pencil icon"></i>
                 </div>
             </div>
@@ -125,12 +125,20 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             self.Validate = function () {
                  //获取
                 //var editItem = self.SingleArticleManage();
-                //if 条件，提示  根据实际情况操作
-                //layer.tips('请填写文章标题', '#SingleArticleTitle', {
-                //        tips: [2, '#78BA32'],
-                //        tipsMore: true,
-                 //   });
-                 //   $("#SingleArticleTitle").focus();
+                
+                <% foreach(EntityMember em in entityManagerList){ 
+                  if(!em.Column.AllowDBNull && em.Column.SystemType != typeof(System.Boolean)){%>
+                    if(editItem.<%=em.PropertyName%>==null||editItem.<%=em.PropertyName%>==""){
+                        layer.tips('请填写<%=GetDescription(em)%>', '#<%=em.PropertyName%>', {
+                            tips: [2, '#78BA32'],
+                           tipsMore: true,
+                        });
+                        $("#<%=em.PropertyName%>").focus();
+                        return false;
+                    }
+                <% } 
+              } %>
+              
                return true;
             }
             //提交数据 地址,回掉函数 fun 未调用，根据情况调配

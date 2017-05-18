@@ -123,7 +123,9 @@ namespace <%= this.AssemblyName %>.Controllers
                                         <%if(em.SystemType.Contains("?")) 
                                         {%>
                             <%=em.PropertyName %>=item.<%=em.PropertyName %>.HasValue?item.<%=em.PropertyName %>.Value.ToString():"",
-                                        <%}
+                                        <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
+                                <%=em.PropertyName%> = item.<%=em.PropertyName%>.ToString("yyyy-MM-dd"),
+                                        <% }
                                         else{%>
                             <%=em.PropertyName %>=item.<%=em.PropertyName %>,
                                         <%}
@@ -199,9 +201,17 @@ namespace <%= this.AssemblyName %>.Controllers
        }
        //修改 View
        public ActionResult <%=GetTableClassName(SourceTable)%>Edit(int id=0){
+                   
             <%= GetTableClassName(SourceTable) %> item = <%= GetTableClassName(SourceTable) %>Service.Get(id);
+            //验证数据是否存在
+            if (item == null)
+            {
+                return RedirectToAction("ErrMsgInfo", "Manage", new { msg = "未找到数据项" });
+            }
+            
             ViewBag.IsUpdate = true;
-           ViewBag.Title ="<%= ClearNote(SourceTable.Description) %>编辑";
+            ViewBag.Title ="<%= ClearNote(SourceTable.Description) %>编辑";
+                
                 
             var viewBagItem = new
             {
