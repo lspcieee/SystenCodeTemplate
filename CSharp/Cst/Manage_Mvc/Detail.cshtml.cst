@@ -38,7 +38,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
 %>
 @inherits Systen.Framework.MVC.MvcWebViewPage
 @section Head{
-    @RegisterHeaderFile("common", "semantic", "Ztree", "knockout", "poshytip", "validate", "edit")
+    @RegisterHeaderFile("common", "semantic",  "knockout","validate", "edit")
      <style type="text/css">
         .editorHeader {
             margin-left: auto;
@@ -86,7 +86,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
     <div id="editHeaderButton">
         <a href="#" class="close" title="关闭"><i class="icon line-close line-font"></i></a>
     </div>
-    <i class="browser icon"></i>
+    <i class="browser icon "></i>
     <div class="content">
         <%= ClearNote(SourceTable.Description) %>
         <div class="sub header">信息查看</div>

@@ -38,13 +38,13 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
 %>
 @inherits Systen.Framework.MVC.MvcWebViewPage
 @section Head{
-    @RegisterHeaderFile("common", "semantic", "Ztree", "knockout", "poshytip", "validate", "edit")
+    @RegisterHeaderFile("common", "semantic", "knockout", "validate", "edit")
 }
 <h2 id="editHeader" class="ui header">
     <div id="editHeaderButton">
         <a href="#" class="close" title="关闭"><i class="icon line-close line-font"></i></a>
     </div>
-    <i class="edit icon"></i>
+    <i class="icon line-font line-edit"></i>
     <div class="content">
         @ViewBag.Title
         <div class="sub header">@ViewBag.Title</div>

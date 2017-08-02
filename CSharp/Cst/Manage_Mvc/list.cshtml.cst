@@ -37,7 +37,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
     //获取总数量
     int rowsCount=entityManagerList.Count;
 %> 
-@section Head{@RegisterHeaderFile("semantic", "common", "laydate", "knockout", "Ztree")}
+@section Head{@RegisterHeaderFile("semantic", "common", "laydate", "knockout")}
 
 
 <div class="breadcrumbs">
@@ -139,7 +139,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                                     已选择<span id="selectCountSpan">0</span>数据
                                 </span>
                                 <div class="ui  icon buttons">
-                                    <button class="ui button" data-bind="click:$root.onItemBatchDeleteClick">
+                                    <button class="ui button" data-bind="click:$root.onItemDeleteClick">
                                         <i class="remove icon"></i>
                                         批量删除
                                     </button>
@@ -267,26 +267,27 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                     });
                 };
                 //批量删除
-                viewModel.onItemBatchDeleteClick = function (data, event) {
-                    
-                    var idList = new Array();
-                    $(".body-box div.checkbox input:checked").each(function () {
-                        idList.push($(this).val());
-                    });
+                viewModel.onItemDeleteClick = function (data, event) {
+                     var idList = new Array();
+                    //单个或者批量
+                    if (data.Id == undefined) {
+                        $(".body-box div.checkbox input:checked").each(function () {
+                            idList.push($(this).val());
+                        });
+                    } else {
+                        idList.push(data.Id);
+                    }
                    
-                    if (idList.length > 1) {
-                       viewModel.DeleteItem(idList, "你确定删除所有勾选？");
+                    if (idList.length ==1) {
+                       viewModel.DeleteItem(idList, "你确定删除该数据？");
+                    }
+                    else if(idList.length > 1){
+                        viewModel.DeleteItem(idList, "你确定删除所有勾选数据？");
                     }
                     else{
                      layer.msg("请先选择要删除的数据", { icon: 2, shift: 5 });
                         return;
                     }                   
-                };
-                //删除
-                viewModel.onItemDeleteClick = function (data, event) {
-                    var idList = new Array();
-                    idList.push(data.Id);
-                    viewModel.DeleteItem(idList, "你确定删除该数据？");
                 };
                 //统一删除方法
                 viewModel.DeleteItem = function (idList, message) {
