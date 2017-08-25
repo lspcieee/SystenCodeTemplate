@@ -99,6 +99,10 @@ Type="System.String"  Optional="False"  %>
 <%@ Register Name="EditCshtmlTemplate" Template="Cst\Manage_Mvc\Edit.cshtml.cst" %>
 <%@ Register Name="DetailCshtmlTemplate" Template="Cst\Manage_Mvc\Detail.cshtml.cst" %>
 <%@ Register Name="ControllerTemplate" Template="Cst\Manage_Mvc\Controller.cs.cst" %>
+
+<%@ Register Name="List2CshtmlTemplate" Template="Cst\Manage_Mvc2\list.cshtml.cst" %>
+<%@ Register Name="Edit2CshtmlTemplate" Template="Cst\Manage_Mvc2\Edit.cshtml.cst" %>
+
 <script runat="template">
 //数据库类型
 public enum DatabaseTypeEnum
@@ -111,6 +115,7 @@ public enum DatabaseTypeEnum
 //生成页面 类型
 public enum PageTypeEnum{
     MvcWeb,
+    MvcWeb2,
     WebForm,
     WinForm,
 }
@@ -657,6 +662,89 @@ private void RenderManage(TableSchema table)
                 editCshtmlTemplateObject.SourceTable = table;
                 
                 editCshtmlTemplateObject.RenderToFile(GetOutputFile(editAspxFileName, null), true);
+            }
+            
+        }
+        
+         //详情 View
+        if(!table.Description.Contains("[noDetail]")){
+            //编辑 View
+            string detailAspxFileName = String.Format("{0}{1}Detail.cshtml", viewPath,GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(detailAspxFileName))
+            {
+                DetailCshtmlTemplate detailCshtmlTemplateObject = this.Create<DetailCshtmlTemplate>();
+                detailCshtmlTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                detailCshtmlTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                detailCshtmlTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                detailCshtmlTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                detailCshtmlTemplateObject.AssemblyName=this.AssemblyName;
+                
+                detailCshtmlTemplateObject.SourceTable = table;
+                
+                detailCshtmlTemplateObject.RenderToFile(GetOutputFile(detailAspxFileName, null), true);
+            }
+            
+        }
+        
+        #endregion
+    }
+     else if(this.PageType.Equals(PageTypeEnum.MvcWeb2)){
+       
+        #region Mvc theme2 Controller
+        
+        //1生成 Controller 和 Action
+       string listAspxCsFileName = String.Format("{0}{1}Controller.cs", GetFolder(@"Controllers"), GetTableClassName(table));
+       
+        //检测是否存在，存在的文件不再生成
+        if(!File.Exists(listAspxCsFileName))
+        {
+           ControllerTemplate ControllerTemplateObject = this.Create<ControllerTemplate>();
+           ControllerTemplateObject.ServiceNamespace = this.ServiceNamespace;
+           ControllerTemplateObject.IServiceNamespace = this.IServiceNamespace;
+           ControllerTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+           ControllerTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+           ControllerTemplateObject.AssemblyName=this.AssemblyName;
+           ControllerTemplateObject.SourceTable = table;
+                
+           ControllerTemplateObject.RenderToFile(GetOutputFile(listAspxCsFileName, null), true);
+        }
+        
+         //2生成视图
+        string viewPath=GetFolder(@"Views\"+GetTableClassName(table)+"");
+        if(!table.Description.Contains("[noList]")){
+            //列表 View
+            string listAspxFileName = String.Format("{0}{1}List.cshtml", viewPath,GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(listAspxFileName))
+            {
+                List2CshtmlTemplate list2CshtmlTemplateObject = this.Create<List2CshtmlTemplate>();
+                list2CshtmlTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                list2CshtmlTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                list2CshtmlTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                list2CshtmlTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                list2CshtmlTemplateObject.SourceTable = table;
+                list2CshtmlTemplateObject.AssemblyName=this.AssemblyName;
+                   
+                list2CshtmlTemplateObject.RenderToFile(GetOutputFile(listAspxFileName, null), true);
+            }
+        }
+        if(!table.Description.Contains("[noEdit]")){
+            //编辑 View
+            string editAspxFileName = String.Format("{0}{1}Edit.cshtml", viewPath,GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(editAspxFileName))
+            {
+                Edit2CshtmlTemplate edit2CshtmlTemplateObject = this.Create<Edit2CshtmlTemplate>();
+                edit2CshtmlTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                edit2CshtmlTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                edit2CshtmlTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                edit2CshtmlTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                edit2CshtmlTemplateObject.AssemblyName=this.AssemblyName;
+                   
+                edit2CshtmlTemplateObject.SourceTable = table;
+                    
+                edit2CshtmlTemplateObject.RenderToFile(GetOutputFile(editAspxFileName, null), true);
             }
             
         }

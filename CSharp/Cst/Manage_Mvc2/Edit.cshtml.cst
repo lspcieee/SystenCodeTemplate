@@ -49,11 +49,10 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
         @ViewBag.Title
         <div class="sub header">@ViewBag.Title</div>
     </div>
-
 </h2>
 
 <form id="EditForm" action="">
-    <div class="ui container ui form">
+    <div class="ui container form">
     
      <% for (int i = 0; i < entityManagerList.Count; i+=2){ %>
          <div class="two fields">
@@ -78,10 +77,10 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
     </div>
    <div class="bottom-btn-box">
             <!--ko ifnot:IsUpdate -->
-            <span class="ui twitter  button" data-bind="click:onAddSaveClick"><i class="checkmark icon"></i>添加</span>
+            <span class="ui skyblue  button" data-bind="click:onAddSaveClick"><i class="checkmark icon"></i>添加</span>
             <!--/ko-->
             <!--ko if:IsUpdate -->
-            <span class="ui twitter  button" data-bind="click:onUpdateSaveClick"><i class="checkmark icon"></i>保存</span>
+            <span class="ui skyblue  button" data-bind="click:onUpdateSaveClick"><i class="checkmark icon"></i>保存</span>
             <!--/ko-->
             <button class="ui button" data-bind="click:onCloseDialog"><i class="remove icon"></i>取消</button>
     </div>

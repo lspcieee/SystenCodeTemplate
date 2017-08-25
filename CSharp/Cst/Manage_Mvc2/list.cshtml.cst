@@ -1,0 +1,336 @@
+﻿	<%-- 
+Name: list.cshtml.cst
+Author: lspcieee
+Description: 列表页面生成
+--%>
+<%@ CodeTemplate Language="C#" Src="..\Helpers\CsNHibernateHelper.cs" Inherits="CsNHibernateHelper"　 ResponseEncoding="UTF-8" TargetLanguage="HTML" Debug="False" Description="Generates an editable Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="3b. 程序集" Description="模块程序集名称" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="System.Linq" %>
+
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+<%
+TableSchemaCollection ExcludedTables = new TableSchemaCollection();
+EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables);
+List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m =>m.Column.Description.Contains("[search]")).ToList();
+    //获取主键名称
+    string primaryKeyName="Id";
+	//Primary Key
+	if(entityManager.PrimaryKey.IsCompositeKey) { 
+
+	} else {
+        primaryKeyName= entityManager.PrimaryKey.KeyColumn.PropertyName;
+	} 
+    //获取总数量
+    int rowsCount=entityManagerList.Count;
+%> 
+@section Head{@RegisterHeaderFile("semantic", "common","knockout")}
+ <!-- 内容部分-->
+@*如果要加左边模块 将代码取消注释*@
+    @*<div class="main-content">
+        <div class="list-box">*@
+        
+        <div class="breadcrumbs breadcrumbs-searchlist">
+            <div class="ui breadcrumb">
+                <i class="map signs icon"></i>
+                <a class="section nav-color"> <%= ClearNote(SourceTable.Description) %>管理</a>
+                <i class="right chevron icon divider"></i>
+                <a class="section nav-color nav-last"> <%= ClearNote(SourceTable.Description) %>列表</a>
+                    
+                <button class="ui skyblue button" data-bind="click:$root.onAddClick">
+                    <i class="plus out icon"></i>添加<%= ClearNote(SourceTable.Description) %>
+                </button>
+            </div>
+            
+            <div class="ui but-group buttons" style="display: none">
+                <a class="ui blue basic button" data-bind="click:$root.onItemDeleteClick">
+                    <i class="remove icon"></i>
+                    删除
+                </a>
+                <div class="ui blue basic pointing dropdown  button">
+                    更多
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+                        <a class="item" data-bind="click:$root.onItemDeleteClick">
+                            <i class="arrow circle up icon"></i>
+                            删除
+                        </a>
+                    </div>
+                </div>
+            </div>
+            @*如果要加左边模块 将代码取消注释*@
+            <% if(rowsCount==1) {%>
+            <div class="ui action input right-box">
+                <input type="text" data-bind="value:searchPara().<%= entityManagerList[0].PropertyName %>" placeholder="<%=GetDescription(entityManagerList[0]) %>" id="<%= entityManagerList[0].PropertyName %>" name="<%= entityManagerList[0].PropertyName %>" class="input_text"   />
+                <button class="ui skyblue button left-box" data-bind="click:$root.onSearchClick"><i class="icon search"></i>查询</button>
+            </div>
+            <%} %>
+        </div>
+        
+        <div class="filter-box">
+            <div class="filter">
+                    <div class="ui  form">
+                        <div class="four fields">
+                            <% if(rowsCount>=4){ for (int i = 1; i < 5; i++){ %>
+                            <div class="field">
+                                <input type="text" data-bind="value:searchPara().<%= entityManagerList[i].PropertyName %>" placeholder="<%=GetDescription(entityManagerList[i]) %>" id="<%= entityManagerList[i].PropertyName %>" name="<%= entityManagerList[i].PropertyName %>" class="input_text"   />
+                            </div>
+                            <%} }  else { foreach(EntityMember em in entityManagerList){ %>
+                             <div class="field">
+                                <input type="text" data-bind="value:searchPara().<%= em.PropertyName %>" placeholder="<%=GetDescription(em) %>"  id="<%= em.PropertyName %>" name="<%= em.PropertyName %>" class="input_text"   />
+                             </div>
+                            <%}} %>
+                            <div class="field">
+                                <button class="ui skyblue button" data-bind="click:$root.onSearchClick"><i class="icon search"></i>查询</button>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+            <% if(rowsCount>4){ %>
+            <button id="moreFilterBtn" class="circular ui icon button">
+                <i class="filter icon"></i>
+            </button>
+            <%} %>
+        </div>
+        <% if(rowsCount>4){ %>
+        <div id="moreFilter" class="ui popup transition hidden">
+            <div class="ui  form">
+            <%for (int i = 5; i < rowsCount; i+=2){ %>
+               <div class="two fields">
+                    <div class="field">
+                        <div class="ui fluid labeled input">
+                            <label class="ui label"><%=GetDescription(entityManagerList[i]) %></label>
+                            <input type="text" data-bind="value:searchPara().<%= entityManagerList[i].PropertyName %>"  placeholder="<%=GetDescription(entityManagerList[i]) %>" id="<%= entityManagerList[i].PropertyName %>" name="<%= entityManagerList[i].PropertyName %>" class="input_text"   />
+                        </div>
+                    </div>
+                    <%if((i+1)<rowsCount) {%>
+                    <div class="field">
+                        <div class="ui fluid labeled input">
+                            <label class="ui label"><%=GetDescription(entityManagerList[i+1]) %></label>
+                            <input type="text" data-bind="value:searchPara().<%= entityManagerList[i+1].PropertyName %>" placeholder="<%=GetDescription(entityManagerList[i+1]) %>"  id="<%= entityManagerList[i+1].PropertyName %>" name="<%= entityManagerList[i+1].PropertyName %>" class="input_text"   />
+                        </div>
+                    </div>
+                    <%} %>
+                </div>
+            <%} %>
+             <div class="two fields">
+                <div class="field ">
+                    <div class="ui fluid labeled input">
+                    </div>
+                </div>
+                <div class="field ">
+                    <div class="ui fluid labeled input">
+                        <button class="ui blue button" data-bind="click:$root.onSearchClick"><i class="icon search"></i>查询</button>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+        <%} %>
+        
+        <div class="table-contener">
+            <div class="head-box no-boder" >
+                <table class="ui table">
+                    <thead>
+                        <tr data-bind="foreach:$root.colModel">
+                            <th data-bind="attr:{width:width }"><span data-bind="html:name"></span></th>
+                        </tr>
+                        @*
+                            如果想绑定html代码，可以将span绑定改成   <div data-bind="html:name"></div>      name可以是html代码，也可以是文本
+                        *@
+                    </thead>
+                </table>
+            </div>
+            <div class="body-box no-boder">
+                <table class="ui body-list selectable table">
+                    <tbody data-bind="foreach: $root.dataList">
+                        <tr>
+                            <td class="left aligned">
+                                <div class="ui checkbox">
+                                    <input type="checkbox" data-bind="checkedValue: Id,attr:{id:'item_'+Id}" />
+                                    <label></label>
+                                </div>
+                            </td>
+                            
+                            <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+                                if(DescriptionContains(em,"[list]")) { 
+                                %>
+                                   <td><span data-bind="text:<%=em.PropertyName %>"></span></td>    
+                                <%
+                                }
+                           } %>
+                            
+                            <td class="aligned">
+                                <a href="#" data-bind="attr:{tid:Id},click:$root.onItemEditClick" class="edit" title="修改"><i class="edit icon"></i>修改</a>
+                                <a href="#" data-bind="attr:{tid:Id},click:$root.onItemDeleteClick" class="remove" title="删除"><i class="remove circle icon"></i>删除</a>
+                                <a href="#" class="ui  pointing dropdown link item" >
+                                    <i class="chevron circle down icon"></i>更多
+                                    <div class="menu transition" tabindex="100" style="left:inherit;right: -25px !important;">
+                                        <div class="item" data-bind="attr:{tid:Id},click:$root.onItemEditClick"><i class="edit icon"></i>修改</div>
+                                         <div class="item" data-bind="attr:{tid:Id},click:$root.onItemDeleteClick"><i class="remove icon"></i>删除</div>
+                                    </div>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <div class="foot-bottom no-boder">
+                    @Html.Partial("~/views/Shared/_pager.cshtml", null)
+                </div>
+            </div>
+        </div>
+   @*</div>
+</div>*@
+
+<!--表格 end-->
+@section Script{
+<script type="text/javascript">
+        var rootUrl="/Modules/<%=this.AssemblyName %>/<%= GetTableClassName(SourceTable) %>";
+        var options = {
+            getListUrl: rootUrl+'/<%= GetTableClassName(SourceTable) %>List',
+            //height: 200,
+            rowList: [10, 20, 30],
+            colModel: [
+               { name: '<div class="ui checkbox all-checked"><input type="checkbox" /><label></label></div>', width: '3%' },
+                <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+                        if(DescriptionContains(em,"[list]")) { 
+                        %>
+               { name: '<%=GetDescription(em) %>', width: '10%' },   
+                        <%
+                        }
+                   } %>
+               { name: '管理', width: '10%' }
+            ],
+            //搜索条件
+            searchPara: {
+            <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+              if(DescriptionContains(em,"[search]")){
+            %>
+                 <%= em.PropertyName %>: ko.observable(),
+             <% 
+                 } 
+             } %>
+                
+            },
+            initControl: function (viewModel) {
+                //初始化控件
+                //高级查询
+                    $('#moreFilterBtn').popup({
+                        popup: $('#moreFilter'),
+                        on: 'click',
+                        position: 'bottom right'
+                    });
+            },
+            initValidate: function (viewModel) {
+                //初始化搜索验证
+            },
+            initEvents: function (viewModel) {
+                //添加
+                viewModel.onAddClick = function (data, event) {
+                    window.layer.open({
+                        title: false,
+                        area:['800px', '600px'],//如area: ['100%', '100%'] 动画 offset:'rb' 右下加载
+                        type: 2,
+                        closeBtn: false,
+                        content: [rootUrl+'/<%= GetTableClassName(SourceTable) %>Add',"no"], //这里content是一个URL，如果你不想让iframe出现滚动条，你还可以content: ['http://sentsin.com', 'no'],
+                        end: function () {
+                            viewModel.flushCurrentPage();
+                        }
+                    });
+                };
+                //修改
+                viewModel.onItemEditClick = function (data, event) {
+                    var id = data.Id;
+                    window.layer.open({
+                        title: false,
+                        closeBtn: false,
+                        area: ['100%', '100%'],
+                        offset: 'rb',//动画，要可以不要 
+                        type: 2,
+                        content: [rootUrl+'/<%= GetTableClassName(SourceTable) %>Edit/?id=' + data.Id, 'no'],
+                        end: function () {
+                            viewModel.flushCurrentPage();
+                        }
+                    });
+                };
+                //批量删除
+                viewModel.onItemDeleteClick = function (data, event) {
+                     var idList = new Array();
+                    //单个或者批量
+                    if (data.Id == undefined) {
+                        $(".body-box div.checkbox input:checked").each(function () {
+                            idList.push($(this).val());
+                        });
+                    } else {
+                        idList.push(data.Id);
+                    }
+                    if (idList.length ==1) {
+                       viewModel.DeleteItem(idList, "你确定删除该数据？");
+                    }
+                    else if(idList.length > 1){
+                        viewModel.DeleteItem(idList, "你确定删除所有勾选数据？");
+                    }
+                    else{
+                     layer.msg("请先选择要删除的数据", { icon: 2, shift: 5 });
+                        return;
+                    }                   
+                };
+                //统一删除方法
+                viewModel.DeleteItem = function (idList, message) {
+                    layer.confirm(message, { icon: 3 }, function (index) {
+                        $.ajax({
+                            url: rootUrl+"/<%= GetTableClassName(SourceTable) %>BatchDelete",
+                            data: { 'idList': idList },
+                            type: "POST",
+                            dataType: 'json',
+                            success: function (result) {
+                                layer.msg(result.Msg, {
+                                    icon: result.Success ? 1 : 2,
+                                    shift: 5
+                                });
+                                layer.close(index);
+                                viewModel.flushCurrentPage();
+                            },
+                            error: function (er) { layer.msg('服务器错误，操作失败！', { icon: 2, shift: 5 }); }
+                        });
+                    });
+                };
+               
+            },
+
+            //必须实现 loadData,在list.js中会自动调用options.loadData(viewModel);，用于初始化
+            loadData: function (viewModel) {
+                this.initControl(viewModel);
+                this.initValidate(viewModel);
+                this.initEvents(viewModel);
+            }
+        };
+        
+        $(function () {
+            var model = new viewModel(options);
+            model.loadData();
+            ko.applyBindings(model);
+        });
+
+        $load(function () {
+            //更多操作绑定
+            $('.ui.dropdown').dropdown({ on: 'click' });
+        });
+ </script>
+    @RegisterHeaderFile("list")
+}
