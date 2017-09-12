@@ -306,7 +306,7 @@ private void RenderCsproj(){
     
     //生成解决方案文件
     string csprojFileName = String.Format("{0}{1}.csproj", GetFolder(@""), this.AssemblyName);
-      if(this.PageType.Equals(PageTypeEnum.MvcWeb))
+      if(this.PageType.Equals(PageTypeEnum.MvcWeb)||this.PageType.Equals(PageTypeEnum.MvcWeb2))
       {
     	if(!File.Exists(csprojFileName)){
             MvcCsprojtemplate csprojTemplateObject = this.Create<MvcCsprojtemplate>();
