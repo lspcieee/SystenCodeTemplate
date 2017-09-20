@@ -14,7 +14,7 @@ Description: 项目文件生成（vs2010 sp1,c#4.0）
 <%@ Property Name="ModuleName" Type="System.String" Default="信息发布模块" Optional="False" Category="4. 模块配置" Description="模块中文名称" %>
 <%@ Property Name="ModuleAuthor" Default="KingDon Soft" Category="4. 模块配置" Description="开发者" 
 Type="System.String"  Optional="False"  %>
-<%@ Property Name="ModuleWebsite" Default="http://www.kingdonsoft.com/" Category="4. 模块配置" Description="开发者网站" 
+<%@ Property Name="ModuleWebsite" Default="http://www.Systen.com/" Category="4. 模块配置" Description="开发者网站" 
 Type="System.String"  Optional="False"  %>
 <%@ Property Name="ModuleDescription" Default="核心模块" Category="4. 模块配置" Description="描述" 
 Type="System.String"  Optional="False"  %>
