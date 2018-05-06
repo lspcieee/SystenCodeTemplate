@@ -218,6 +218,7 @@ private void RenderModuleCs()
             csprojTemplateObject.IServiceNamespace = this.IServiceNamespace;
             csprojTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
             csprojTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+            csprojTemplateObject.ModuleCategory = this.ModuleCategory;
             csprojTemplateObject.ModuleTables = this.ModuleTables;
             csprojTemplateObject.RenderToFile(GetOutputFile(moduleConfigFileName, null), true); 
     }
