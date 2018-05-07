@@ -84,7 +84,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             <div class="filter">
                     <div class="ui  form">
                         <div class="four fields">
-                            <% if(rowsCount>=4){ for (int i = 1; i < 5; i++){ %>
+                            <% if(rowsCount>4){ for (int i = 1; i < 5; i++){ %>
                             <div class="field">
                                 <input type="text" data-bind="value:searchPara().<%= entityManagerList[i].PropertyName %>" placeholder="<%=GetDescription(entityManagerList[i]) %>" id="<%= entityManagerList[i].PropertyName %>" name="<%= entityManagerList[i].PropertyName %>" class="input_text"   />
                             </div>
