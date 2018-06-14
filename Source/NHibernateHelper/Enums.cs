@@ -5,6 +5,7 @@ using System.Text;
 
 namespace NHibernateHelper
 {
+
     public enum NHibernateVersion
     {
         v1_2,
