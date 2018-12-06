@@ -36,7 +36,6 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
 	} 
    
 %>
-@inherits Systen.Framework.MVC.MvcWebViewPage
 @section Head{
     @RegisterHeaderFile("common", "semantic",  "knockout","validate", "edit")
      <style type="text/css">
