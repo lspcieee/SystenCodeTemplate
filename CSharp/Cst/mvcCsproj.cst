@@ -128,10 +128,6 @@ Assembly that will contain the business objects." %>
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\Lib\framework\Systen.Util.dll</HintPath>
     </Reference>
-    <Reference Include="Webdiyer.MvcPager, Version=3.0.2015.521, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\Lib\MVC\Webdiyer.MvcPager.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
    <Compile Include="Properties\AssemblyInfo.cs" />
