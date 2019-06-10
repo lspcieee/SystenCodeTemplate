@@ -107,33 +107,21 @@ namespace <%= this.AssemblyName %>.Controllers
             //排序
             Order order = Order.Desc(<%= GetTableClassName(SourceTable) %>.ColumnNames.<%=primaryKeyName%>);
             //todo:逻辑删除过滤  可以直接删除
-            //ICriterion isDeleteCriterion = Restrictions.Eq(<%= GetTableClassName(SourceTable) %>.ColumnNames.IsDelete, false));
+            <%if(isDelete){ %>
+            criterionList.Add(Restrictions.Eq(<%= GetTableClassName(SourceTable) %>.ColumnNames.IsDelete, false));
+             <%} %>
+            //ICriterion isDeleteCriterion = Restrictions.Eq(<%= GetTableClassName(SourceTable) %>.ColumnNames.IsDelete, false);
             //criterionList.Add(isDeleteCriterion);
+            
+           dataList = <%= GetTableClassName(SourceTable) %>Service.GetPagedList(pageSize, pageNumber, criterionList, order, ref pageCount)
+                    .Select(item => GetViewBagItem(item)).ToList();
                 
-            dataList = <%= GetTableClassName(SourceTable) %>Service.GetPagedList(pageSize, pageNumber, criterionList, order, ref pageCount).Select(
-                item =>
-                {
-                    dynamic dItem=
-                        new
-                        {
-                            Id=item.Id.ToString(),
-                              <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
-                                    if(DescriptionContains(em,"[list]")) { %>
-                            //<%=ClearNote(em.Column.Description) %>
-                                        <%if(em.SystemType.Contains("?")) 
-                                        {%>
-                            <%=em.PropertyName %>=item.<%=em.PropertyName %>.HasValue?item.<%=em.PropertyName %>.Value.ToString():"",
-                                        <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
-                                <%=em.PropertyName%> = item.<%=em.PropertyName%>.ToString("yyyy-MM-dd"),
-                                        <% }
-                                        else{%>
-                            <%=em.PropertyName %>=item.<%=em.PropertyName %>,
-                                        <%}
-                                    }
-                               } %>
-                        };
-                    return dItem;
-                }).ToList();
+            //dataList = <%= GetTableClassName(SourceTable) %>Service.GetPagedList(pageSize, pageNumber, criterionList, order, ref pageCount).Select(
+            //    item =>
+            //    {
+            //        dynamic dItem= new {Id=item.Id.ToString()};
+            //        return dItem;
+            //    }).ToList();
                 
             var current = new
                 {
@@ -157,34 +145,10 @@ namespace <%= this.AssemblyName %>.Controllers
               <%= GetTableClassName(SourceTable) %> item= new <%= GetTableClassName(SourceTable) %>();
               ViewBag.Title = "新增<%= ClearNote(SourceTable.Description) %>";
               ViewBag.IsUpdate = false;
-              var viewBagItem = new
-            {
-            <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
-                    if(!DescriptionContains(em,"[hide]")){%>
-                //<%=GetDescription(em) %>
-                        <%if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
-                <%=em.PropertyName%> = item.<%=em.PropertyName%>.HasValue? (item.<%=em.PropertyName%>.Value?"是":"否"):string.Empty,
-                        <%}else if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
-                <%=em.PropertyName%> = item.<%=em.PropertyName%>.HasValue? item.<%=em.PropertyName%>.Value.ToString("yyyy-MM-dd"):string.Empty,
-                        <%}else if(em.SystemType.Contains("?")){%>
-                <%=em.PropertyName%> = item.<%=em.PropertyName%>.HasValue? item.<%=em.PropertyName%>.Value.ToString():string.Empty,
-                        <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
-                <%=em.PropertyName%> = item.<%=em.PropertyName%>?"是":"否",
-                        <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
-                <%=em.PropertyName%> = item.<%=em.PropertyName%>.ToString("yyyy-MM-dd"),
-                        <% }
-                        else{%>
-                <%=em.PropertyName%>=item.<%=em.PropertyName%>,
-                        <%}%>
-                    <%}
-            } %>
-			 //id
-             item.Id,
-            };
              //xmlData 使用示例
             // Dictionary<string, string> auditStatusList = IocHelper.Resolve<ArticleModule>().XmlDataCenter.GetData("AuditStatusType");
             //editItem.AuditStatusName = auditStatusList[editItem.AuditStatusId.ToString()];
-            ViewBag.<%= GetTableClassName(SourceTable) %> = viewBagItem;
+            ViewBag.<%= GetTableClassName(SourceTable) %> =  GetViewBagItem(item);
             return View("<%=GetTableClassName(SourceTable)%>Edit");
          }
        //添加保存
@@ -211,36 +175,10 @@ namespace <%= this.AssemblyName %>.Controllers
             
             ViewBag.IsUpdate = true;
             ViewBag.Title ="<%= ClearNote(SourceTable.Description) %>编辑";
-                
-                
-            var viewBagItem = new
-            {
-            <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
-                    if(!DescriptionContains(em,"[hide]")){%>
-                //<%=GetDescription(em) %>
-                        <%if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
-                <%=em.PropertyName%> = item.<%=em.PropertyName%>.HasValue? (item.<%=em.PropertyName%>.Value?"是":"否"):string.Empty,
-                        <%}else if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
-                <%=em.PropertyName%> = item.<%=em.PropertyName%>.HasValue? item.<%=em.PropertyName%>.Value.ToString("yyyy-MM-dd"):string.Empty,
-                        <%}else if(em.SystemType.Contains("?")){%>
-                <%=em.PropertyName%> = item.<%=em.PropertyName%>.HasValue? item.<%=em.PropertyName%>.Value.ToString():string.Empty,
-                        <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
-                <%=em.PropertyName%> = item.<%=em.PropertyName%>?"是":"否",
-                        <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
-                <%=em.PropertyName%> = item.<%=em.PropertyName%>.ToString("yyyy-MM-dd"),
-                        <% }
-                        else{%>
-                <%=em.PropertyName%>=item.<%=em.PropertyName%>,
-                        <%}%>
-                    <%}
-            } %>
-			 //id
-             item.Id,
-            };
              //xmlData 使用示例
             // Dictionary<string, string> auditStatusList = IocHelper.Resolve<ArticleModule>().XmlDataCenter.GetData("AuditStatusType");
             //editItem.AuditStatusName = auditStatusList[editItem.AuditStatusId.ToString()];
-            ViewBag.<%= GetTableClassName(SourceTable) %> = viewBagItem;
+            ViewBag.<%= GetTableClassName(SourceTable) %> = GetViewBagItem(item);
             return View();
        } 
        
@@ -282,6 +220,37 @@ namespace <%= this.AssemblyName %>.Controllers
                 <% } 
               } %>
              return "";
+        }
+       //统一返回
+       private dynamic GetViewBagItem(<%= GetTableClassName(SourceTable) %> editItem)
+        {
+             var viewBagItem = new
+            {
+                //id
+                 item.Id,
+            <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+                    if(!DescriptionContains(em,"[hide]")){%>
+                //<%=GetDescription(em) %>
+                        <%if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
+                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.HasValue? (editItem.<%=em.PropertyName%>.Value?"是":"否"):string.Empty,
+                        <%}else if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
+                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.HasValue? editItem.<%=em.PropertyName%>.Value.ToString("yyyy-MM-dd"):string.Empty,
+                        <%}else if(em.SystemType.Contains("?")){%>
+                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.HasValue? editItem.<%=em.PropertyName%>.Value.ToString():string.Empty,
+                        <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
+                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>?"是":"否",
+                        <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
+                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.ToString("yyyy-MM-dd hh:mm"),
+                        <% }
+                        else{%>
+                <%=em.PropertyName%>=editItem.<%=em.PropertyName%>,
+                        <%}%>
+                    <%}
+            } %>
+			 
+            };
+            
+            return viewBagItem;
         }
        
         /// <summary>

@@ -47,7 +47,7 @@ Type="System.String"  Optional="False"  %>
   <AutoActivate>True</AutoActivate>
   <!--状态信息-->
   <Enabled Description="是否启用该模块">True</Enabled>
-  <Installed Description="是否初始化菜单">False</Installed>
+  <Installed Description="是否初始化菜单">True</Installed>
   <InsertTimeStamp></InsertTimeStamp>
   <UpdateTimeStamp></UpdateTimeStamp>
 </ModuleConfig>

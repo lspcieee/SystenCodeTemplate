@@ -120,7 +120,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             //自定义验证
             self.Validate = function () {
                  //获取
-                //var editItem = self.SingleArticleManage();
+                var editItem = self.<%= GetTableClassName(SourceTable) %>();
                 
                 <% foreach(EntityMember em in entityManagerList){ 
                   if(!em.Column.AllowDBNull && em.Column.SystemType != typeof(System.Boolean)){%>
