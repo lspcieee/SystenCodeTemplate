@@ -142,13 +142,13 @@ namespace <%= this.AssemblyName %>.Controllers
        }
        //添加view
          public ActionResult <%=GetTableClassName(SourceTable)%>Add(){
-              <%= GetTableClassName(SourceTable) %> item= new <%= GetTableClassName(SourceTable) %>();
+              <%= GetTableClassName(SourceTable) %> dataItem= new <%= GetTableClassName(SourceTable) %>();
               ViewBag.Title = "新增<%= ClearNote(SourceTable.Description) %>";
               ViewBag.IsUpdate = false;
              //xmlData 使用示例
             // Dictionary<string, string> auditStatusList = IocHelper.Resolve<ArticleModule>().XmlDataCenter.GetData("AuditStatusType");
             //editItem.AuditStatusName = auditStatusList[editItem.AuditStatusId.ToString()];
-            ViewBag.<%= GetTableClassName(SourceTable) %> =  GetViewBagItem(item);
+            ViewBag.<%= GetTableClassName(SourceTable) %> =  GetViewBagItem(dataItem);
             return View("<%=GetTableClassName(SourceTable)%>Edit");
          }
        //添加保存
@@ -227,7 +227,7 @@ namespace <%= this.AssemblyName %>.Controllers
              var viewBagItem = new
             {
                 //id
-                 item.Id,
+                 editItem.Id,
             <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
                     if(!DescriptionContains(em,"[hide]")){%>
                 //<%=GetDescription(em) %>
@@ -240,7 +240,7 @@ namespace <%= this.AssemblyName %>.Controllers
                         <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
                 <%=em.PropertyName%> = editItem.<%=em.PropertyName%>?"是":"否",
                         <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
-                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.ToString("yyyy-MM-dd hh:mm"),
+                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.ToString("yyyy-MM-dd HH:mm"),
                         <% }
                         else{%>
                 <%=em.PropertyName%>=editItem.<%=em.PropertyName%>,

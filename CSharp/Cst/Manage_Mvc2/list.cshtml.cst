@@ -72,7 +72,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                 </div>
             </div>
             @*如果要加左边模块 将代码取消注释*@
-            <% if(rowsCount==1) {%>
+            <% if(rowsCount>0) {%>
             <div class="ui action input right-box">
                 <input type="text" data-bind="value:searchPara().<%= entityManagerList[0].PropertyName %>" placeholder="<%=GetDescription(entityManagerList[0]) %>" id="<%= entityManagerList[0].PropertyName %>" name="<%= entityManagerList[0].PropertyName %>" class="input_text"   />
                 <button class="ui skyblue button left-box" data-bind="click:$root.onSearchClick"><i class="icon search"></i>查询</button>
@@ -242,7 +242,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             initEvents: function (viewModel) {
                 //添加
                 viewModel.onAddClick = function (data, event) {
-                    window.layer.open({
+                    layer.open({
                         title: false,
                         area:['800px', '600px'],//如area: ['100%', '100%'] 动画 offset:'rb' 右下加载
                         type: 2,
@@ -256,7 +256,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                 //修改
                 viewModel.onItemEditClick = function (data, event) {
                     var id = data.Id;
-                    window.layer.open({
+                    layer.open({
                         title: false,
                         closeBtn: false,
                         area: ['100%', '100%'],
