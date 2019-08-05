@@ -113,15 +113,37 @@ namespace <%= this.AssemblyName %>.Controllers
             //ICriterion isDeleteCriterion = Restrictions.Eq(<%= GetTableClassName(SourceTable) %>.ColumnNames.IsDelete, false);
             //criterionList.Add(isDeleteCriterion);
             
-           dataList = <%= GetTableClassName(SourceTable) %>Service.GetPagedList(pageSize, pageNumber, criterionList, order, ref pageCount)
-                    .Select(item => GetViewBagItem(item)).ToList();
-                
-            //dataList = <%= GetTableClassName(SourceTable) %>Service.GetPagedList(pageSize, pageNumber, criterionList, order, ref pageCount).Select(
-            //    item =>
-            //    {
-            //        dynamic dItem= new {Id=item.Id.ToString()};
-            //        return dItem;
-            //    }).ToList();
+			dataList = <%= GetTableClassName(SourceTable) %>Service.GetPagedList(pageSize, pageNumber, criterionList, order, ref pageCount).Select(
+                dataItem =>
+                {
+                    dynamic dItem= new {
+					Id=dataItem.Id.ToString(),
+			 <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+                    if(!DescriptionContains(em,"[hide]")){%>
+                //<%=GetDescription(em) %>
+                        <%if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
+                <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>.HasValue? (dataItem.<%=em.PropertyName%>.Value?"是":"否"):string.Empty,
+                        <%}else if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
+                <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>.HasValue? dataItem.<%=em.PropertyName%>.Value.ToString("yyyy-MM-dd"):string.Empty,
+                        <%}else if(em.SystemType.Contains("?")){%>
+                <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>.HasValue? dataItem.<%=em.PropertyName%>.Value.ToString():string.Empty,
+                        <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
+                <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>?"是":"否",
+                        <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
+                <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>.ToString("yyyy-MM-dd HH:mm"),
+                        <% }
+                        else{%>
+                <%=em.PropertyName%>=dataItem.<%=em.PropertyName%>,
+                        <%}%>
+                    <%}
+            } %>
+					};
+                    return dItem;
+                }).ToList();
+			
+			
+           //dataList = <%= GetTableClassName(SourceTable) %>Service.GetPagedList(pageSize, pageNumber, criterionList, order, ref pageCount)
+           //         .Select(item => GetViewBagItem(item)).ToList();
                 
             var current = new
                 {
@@ -152,6 +174,7 @@ namespace <%= this.AssemblyName %>.Controllers
             return View("<%=GetTableClassName(SourceTable)%>Edit");
          }
        //添加保存
+	    [PermissionKey("<%=GetTableClassName(SourceTable)%>Add")]
        public JsonResult <%=GetTableClassName(SourceTable)%>SaveAdd(<%= GetTableClassName(SourceTable) %>  editItem){
             //数据验证，统一验证处理 
             string message = Validate(editItem);
@@ -183,6 +206,7 @@ namespace <%= this.AssemblyName %>.Controllers
        } 
        
        //修改 保存
+	    [PermissionKey("<%=GetTableClassName(SourceTable)%>Edit")]
        public JsonResult <%=GetTableClassName(SourceTable)%>SaveEdit(<%= GetTableClassName(SourceTable) %>  editItem){
             if (editItem.Id < 1)
             {

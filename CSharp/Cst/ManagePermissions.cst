@@ -50,11 +50,6 @@ namespace <%=this.AssemblyName %>
                 /// </summary>
                 [Operation(Name = "添加", Key = "<%=tableName%>/<%=tableName%>Add")]
                 public struct Add { }
-                 /// <summary>
-                /// 新增保存
-                /// </summary>
-                [Operation(Name = "新增保存", Key = "<%=tableName%>/<%=tableName%>SaveAdd")]
-                public struct SaveAdd { }
                 
                 <%} %>
                 <%if(!table.Description.Contains("[noEdit]")){ %>
@@ -63,18 +58,12 @@ namespace <%=this.AssemblyName %>
                 /// </summary>
                 [Operation(Name = "编辑", Key = "<%=tableName%>/<%=tableName%>Edit")]
                 public struct Edit { }
-
-                /// <summary>
-                /// 编辑保存
-                /// </summary>
-                [Operation(Name = "编辑保存", Key = "<%=tableName%>/<%=tableName%>SaveEdit")]
-                public struct SaveUpdate { }
                 <%} %>
                    <%if(!table.Description.Contains("[noDelete]")){ %>
                 /// <summary>
                 /// 删除
                 /// </summary>
-                [Operation(Name = "删除", Key = "<%=tableName%>/BatchDelete")]
+                [Operation(Name = "删除", Key = "<%=tableName%>/<%=tableName%>BatchDelete")]
                 public struct Del { }
                 <%} %>
 
