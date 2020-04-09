@@ -174,13 +174,21 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                            } %>
                             
                             <td class="aligned">
-                                <a href="#" data-bind="attr:{tid:Id},click:$root.onItemEditClick" class="edit" title="修改"><i class="edit icon"></i>修改</a>
-                                <a href="#" data-bind="attr:{tid:Id},click:$root.onItemDeleteClick" class="remove" title="删除"><i class="remove circle icon"></i>删除</a>
-                                <a href="#" class="ui  pointing dropdown link item" >
+                                <a href="javascript:;" data-bind="attr:{tid:Id},click:$root.onItemEditClick" title="修改">
+								<i class="edit icon"></i>修改
+								</a>
+                                <a href="javascript:;" data-bind="attr:{tid:Id},click:$root.onItemDeleteClick" title="删除">
+								<i class="remove circle icon"></i>删除
+								</a>
+                                <a href="javascript:;" class="ui  pointing dropdown link item" >
                                     <i class="chevron circle down icon"></i>更多
                                     <div class="menu transition" tabindex="100" style="left:inherit;right: -25px !important;">
-                                        <div class="item" data-bind="attr:{tid:Id},click:$root.onItemEditClick"><i class="edit icon"></i>修改</div>
-                                         <div class="item" data-bind="attr:{tid:Id},click:$root.onItemDeleteClick"><i class="remove icon"></i>删除</div>
+                                        <div class="item" data-bind="attr:{tid:Id},click:$root.onItemEditClick">
+										<i class="edit icon"></i>修改
+										</div>
+                                         <div class="item" data-bind="attr:{tid:Id},click:$root.onItemDeleteClick">
+										 <i class="remove icon"></i>删除
+										 </div>
                                     </div>
                                 </a>
                             </td>
@@ -244,9 +252,9 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                 viewModel.onAddClick = function (data, event) {
                     layer.open({
                         title: false,
+						closeBtn: false,
                         area:['800px', '600px'],//如area: ['100%', '100%'] 动画 offset:'rb' 右下加载
-                        type: 2,
-                        closeBtn: false,
+                        type: 2,                        
                         content: [rootUrl+'/<%= GetTableClassName(SourceTable) %>Add',"no"], //这里content是一个URL，如果你不想让iframe出现滚动条，你还可以content: ['http://sentsin.com', 'no'],
                         end: function () {
                             viewModel.flushCurrentPage();
@@ -255,14 +263,13 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                 };
                 //修改
                 viewModel.onItemEditClick = function (data, event) {
-                    var id = data.Id;
                     layer.open({
                         title: false,
                         closeBtn: false,
                         area: ['100%', '100%'],
                         offset: 'rb',//动画，要可以不要 
                         type: 2,
-                        content: [rootUrl+'/<%= GetTableClassName(SourceTable) %>Edit/?id=' + data.Id, 'no'],
+                        content: [rootUrl+'/<%= GetTableClassName(SourceTable) %>Edit?id=' + data.Id, 'no'],
                         end: function () {
                             viewModel.flushCurrentPage();
                         }

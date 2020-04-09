@@ -45,20 +45,20 @@ namespace <%=this.AssemblyName %>
                 
                 //添加               
                 [Operation(Name = "添加", Key = "<%=tableName%>/<%=tableName%>Add")]
-                public struct <%=tableName%>/<%=tableName%>Add { }
+                public struct <%=tableName%>Add { }
                 
                 <%} %>
                 <%if(!table.Description.Contains("[noEdit]")){ %>
                
                 //编辑
                 [Operation(Name = "编辑", Key = "<%=tableName%>/<%=tableName%>Edit")]
-                public struct <%=tableName%>/<%=tableName%>Edit { }
+                public struct <%=tableName%>Edit { }
                 <%} %>
                    <%if(!table.Description.Contains("[noDelete]")){ %>
                
                 //批量删除
                 [Operation(Name = "批量删除", Key = "<%=tableName%>/<%=tableName%>BatchDelete")]
-                public struct <%=tableName%>/<%=tableName%>BatchDelete { }
+                public struct <%=tableName%>BatchDelete { }
                 <%} %>
 
             }

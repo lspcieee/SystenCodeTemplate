@@ -125,7 +125,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                   if(!em.Column.AllowDBNull && em.Column.SystemType != typeof(System.Boolean)){%>
                     if(editItem.<%=em.PropertyName%>==null||editItem.<%=em.PropertyName%>==""){
                         layer.tips('请填写<%=GetDescription(em)%>', '#<%=em.PropertyName%>', {
-                            tips: [2, '#fff9c9'],
+                            tips: [2, '#78BA32'],
                            tipsMore: true,
                         });
                         $("#<%=em.PropertyName%>").focus();
