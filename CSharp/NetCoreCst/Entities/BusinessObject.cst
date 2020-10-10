@@ -1,0 +1,69 @@
+﻿<%-- 
+Name: BusinessObject.cst
+Author: lspcieee
+Description: 生成业务对象
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" Inherits="CsNHibernateHelper" Src="../Helpers/CsNHibernateHelper.cs" TargetLanguage="C#" Debug="False" Description="Generates a Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="2. Namespaces" Description="Framework命名空间" %>
+<%@ Property Name="ExcludedTables" Type="SchemaExplorer.TableSchemaCollection" Optional="True" Category="1b. Database Options" Description="A collection of tables to be excluded during generation." %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="2. Namespaces" Description="The desired Namespace for the Business Objects." %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+<% EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables); %>
+
+using <%= FrameworkNamespace %>.Entity;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+
+namespace <%= EntitiesNamespace %>
+{
+    /// <summary>
+    /// <%= ClearNote(SourceTable.Description) %>
+    /// </summary>
+    [Table("<%= SourceTable.Name %>")]
+    public partial class <%= GetTableClassName(SourceTable) %>  : EntityBase
+    {
+             
+         <% // 主键 %>
+		<% if(entityManager.PrimaryKey.IsCompositeKey) { %>
+        
+
+		<% } else { 
+            EntityMember em=entityManager.PrimaryKey.KeyColumn;
+            %>
+        /// <summary>
+        /// <%= em.Column.Description %>
+        /// </summary>
+        [Key,Column("<%= em.PropertyName %>")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public virtual <%= em.SystemType %> <%= em.PropertyName %> { get; set; }
+		<% } %>
+        
+        
+		<% foreach(EntityMember em in entityManager.Members) { %>
+        /// <summary>
+        /// <%= em.Column.Description %>
+        /// </summary>
+        public virtual <%= em.SystemType %> <%= em.PropertyName %> { get; set; }
+        
+		<% } %>
+        
+        
+        <% foreach(EntityAssociation ea in entityManager.ManyToOne) { %>
+        /// <summary>
+        /// <%= ea.Column.Description %>
+        /// </summary>
+        public virtual <%= ea.Column.SystemType %> <%= ea.Column.Name %> { get; set; }
+		<% } %>
+        
+    }
+}

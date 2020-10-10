@@ -1,0 +1,213 @@
+﻿<%-- 
+Name: edit.cshtml.cst
+Author: lspcieee
+Description: 编辑页面生成
+--%>
+<%@ CodeTemplate Language="C#" Src="..\Helpers\CsNHibernateHelper.cs" Inherits="CsNHibernateHelper"　 ResponseEncoding="UTF-8" TargetLanguage="html" Debug="False" Description="Generates an editable Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="3b. 程序集" Description="模块程序集名称" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="System.Linq" %>
+
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+<%
+TableSchemaCollection ExcludedTables = new TableSchemaCollection();
+EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables);
+List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m => !m.Column.Description.Contains("[hide]")).ToList();
+    //获取主键名称
+    string primaryKeyName="Id";
+	//Primary Key
+	if(entityManager.PrimaryKey.IsCompositeKey) { 
+
+	} else {
+        primaryKeyName= entityManager.PrimaryKey.KeyColumn.PropertyName;
+	} 
+   
+%>
+@section Head{
+    @RegisterHeaderFile("common", "semantic", "knockout","poshytip", "validate", "edit")
+}
+<h2 id="editHeader" class="ui header">
+    <div id="editHeaderButton">
+        <a href="#" class="close" title="关闭"><i class="icon line-close line-font"></i></a>
+    </div>
+    <i class="icon line-font line-edit"></i>
+    <div class="content">
+        @ViewBag.Title
+        <div class="sub header">@ViewBag.Title</div>
+    </div>
+</h2>
+
+<form id="EditForm" action="">
+    <div class="ui container form">
+    
+     <% for (int i = 0; i < entityManagerList.Count; i+=2){ %>
+         <div class="two fields">
+           <div class="<%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>required <% } %> field">
+                <label><%= GetDescription(entityManagerList[i]) %>:</label>
+                <div class="ui left icon input">
+                    <input id="<%= entityManagerList[i].PropertyName %>" name="<%= entityManagerList[i].PropertyName %>" data-bind="value:<%= GetTableClassName(SourceTable) %>().<%= entityManagerList[i].PropertyName %>" type="text"  <%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>class="validate-input" <% } %>  />
+                    <i class="pencil icon"></i>
+                </div>
+            </div>
+            <%if((i+1)<entityManagerList.Count){ %>
+            <div class="<%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>required <% } %>field">
+                <label><%=GetDescription(entityManagerList[i+1]) %>:</label>
+                <div class="ui left icon input">
+                    <input id="<%= entityManagerList[i+1].PropertyName %>" name="<%= entityManagerList[i+1].PropertyName %>" data-bind="value:<%= GetTableClassName(SourceTable) %>().<%= entityManagerList[i+1].PropertyName %>" type="text" <%if(!entityManagerList[i].Column.AllowDBNull && entityManagerList[i].Column.SystemType != typeof(System.Boolean)){%>class="validate-input" <% } %> />
+                    <i class="pencil icon"></i>
+                </div>
+            </div>
+            <%} %>
+        </div>
+      <% } %>
+    </div>
+   <div class="bottom-btn-box">
+            <!--ko ifnot:IsUpdate -->
+            <span class="ui skyblue  button" data-bind="click:onAddSaveClick"><i class="checkmark icon"></i>添加</span>
+            <!--/ko-->
+            <!--ko if:IsUpdate -->
+            <span class="ui skyblue  button" data-bind="click:onUpdateSaveClick"><i class="checkmark icon"></i>保存</span>
+            <!--/ko-->
+            <button class="ui button" data-bind="click:onCloseDialog"><i class="remove icon"></i>取消</button>
+    </div>
+</form>
+
+@section Script{
+<script type="text/javascript">
+        var rootUrl="/Modules/<%=this.AssemblyName %>/<%= GetTableClassName(SourceTable) %>";
+        var editViewModel = function () {
+            var self = this;
+            self.<%= GetTableClassName(SourceTable) %> = ko.observable();
+            self.IsUpdate = ko.observable(false);
+            //初始化jquery插件等 
+            self.initControl = function() {
+            //初始化控件
+            
+            };
+              //初始化验证
+            self.initValidate = function (){
+              //数据验证设置
+              $loadValidate();
+              
+              <% foreach(EntityMember em in entityManagerList){ 
+                  if(!em.Column.AllowDBNull && em.Column.SystemType != typeof(System.Boolean)){%>
+                    $("#<%=em.PropertyName %>").rules("add",
+                    {
+                        required: true,
+                        messages: {
+                            required: "请填写<%=GetDescription(em)%>"
+                        }
+                    });
+                <% } 
+              } %>
+              
+              
+            };
+            //自定义验证
+            self.Validate = function () {
+                 //获取
+                var editItem = self.<%= GetTableClassName(SourceTable) %>();
+                
+                <% foreach(EntityMember em in entityManagerList){ 
+                  if(!em.Column.AllowDBNull && em.Column.SystemType != typeof(System.Boolean)){%>
+                    if(editItem.<%=em.PropertyName%>==null||editItem.<%=em.PropertyName%>==""){
+                        layer.tips('请填写<%=GetDescription(em)%>', '#<%=em.PropertyName%>', {
+                            tips: [2, '#78BA32'],
+                           tipsMore: true,
+                        });
+                        $("#<%=em.PropertyName%>").focus();
+                        return false;
+                    }
+                <% } 
+              } %>
+              
+               return true;
+            }
+            //提交数据 地址,回掉函数 fun 未调用，根据情况调配
+            self.submitData=function(action,fun) {
+                //获取
+                var editItem = self.<%= GetTableClassName(SourceTable) %>();
+                //loading层
+                var loadingIndex = layer.load(0, {
+                    shade: [0.2, '#000'] //0.2透明度的黑色背景
+                });
+               $.ajax({
+                    url: rootUrl+"/"+action,
+                    data: { 'editItem': editItem },
+                    type: "POST",
+                    dataType: 'json',
+                    success: function (result) {
+                        layer.close(loadingIndex);
+                        layer.msg(result.Msg, {
+                            icon: result.Success ? 1 : 2,
+                            shift: 5
+                        });
+                        if (result.Success) {
+                            setTimeout('closeCurrentDialog()',800);
+                        }
+                    },
+                    error: function (er) {
+                       layer.close(loadingIndex);
+                        layer.msg('操作失败，服务器错误', {
+                            icon: 2,
+                            shift: 5
+                        });
+                    }
+                }); 
+            };
+             //保存按钮事件
+            self.onAddSaveClick = function () {
+                //默认验证，如果需要自定义验证 添加 self.Validate() 统一验证
+                //列：if($("#EditForm").valid()self.Validate())
+                if ($("#EditForm").valid()) {
+                //如果有特殊处理，添加回调函数
+                   self.submitData("<%= GetTableClassName(SourceTable) %>SaveAdd",null);
+                }
+            };
+            //修改保存
+            self.onUpdateSaveClick = function () {
+                //默认验证，如果需要自定义验证 添加 self.Validate() 统一验证
+                //列：if($("#EditForm").valid() self.Validate())
+                if ($("#EditForm").valid()) {
+                //如果有特殊处理，添加回调函数
+                    self.submitData("<%= GetTableClassName(SourceTable) %>SaveEdit",null);
+                }
+                
+            };
+            
+            //关闭按钮事件
+            self.onCloseDialog = function () {
+                var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
+                parent.layer.close(index); //执行关闭
+            };
+            
+            self.loadData = function () {
+                self.<%= GetTableClassName(SourceTable) %>(ViewBag.<%= GetTableClassName(SourceTable) %>); 
+                self.IsUpdate(ViewBag.IsUpdate);
+                self.initControl();
+                self.initValidate();
+            };
+            
+        };
+        
+        $(function () {
+            var viewModel = new editViewModel();
+            viewModel.loadData();
+            ko.applyBindings(viewModel);
+
+        });
+   </script>     
+}

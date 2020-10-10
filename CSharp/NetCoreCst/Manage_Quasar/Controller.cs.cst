@@ -1,0 +1,319 @@
+﻿<%-- 
+Name: list.aspx.cs.cst
+Author: lspcieee
+Description: 列表页面cs生成
+--%>
+<%@ CodeTemplate Language="C#" Src="..\Helpers\CsNHibernateHelper.cs" Inherits="CsNHibernateHelper"　 ResponseEncoding="UTF-8" TargetLanguage="C#" Debug="False" Description="Generates an editable Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="3b. 程序集" Description="模块程序集名称" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%@ Import Namespace="System.Linq" %>
+
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+<%
+TableSchemaCollection ExcludedTables = new TableSchemaCollection();
+EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables);
+List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m => !m.Column.Description.Contains("[hide]")).ToList();
+    //获取主键名称
+    string primaryKeyName="Id";
+    //Primary Key
+	if(entityManager.PrimaryKey.IsCompositeKey) { 
+
+	} else {
+        primaryKeyName= entityManager.PrimaryKey.KeyColumn.PropertyName;
+	} 
+    
+   bool isDelete=entityManager.MembersNoKeyNoVersion.SingleOrDefault(m=>m.PropertyName=="IsDelete")==null;
+%>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web.Mvc;
+using NHibernate.Criterion;
+using Systen.Framework.MVC;
+using Systen.Util.Ext;
+using Systen.Framework.Module.Menu;
+using <%= this.EntitiesNamespace %>;
+using <%= this.IServiceNamespace %>;
+namespace <%= this.AssemblyName %>.Controllers
+{
+    public class <%= GetTableClassName(SourceTable) %>Controller : ContainerController
+    {   
+        /// <summary>
+        /// <%= SourceTable.Description %>操作对象
+        /// </summary>
+        public I<%= GetTableClassName(SourceTable) %>Service <%= GetTableClassName(SourceTable) %>Service { get; set; }
+        
+        <% 
+        var listParameter=string.Empty;
+        foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+            if(DescriptionContains(em,"[search]")){
+                listParameter+= ", string "+ToProperCase( em.PropertyName)+"=\"\"";
+            }
+        }
+        %>
+           
+            
+        //加载列表
+        public ActionResult <%=GetTableClassName(SourceTable)%>List(int pageSize = 20, int pageNumber = 1, int pageCount=0 <%=listParameter%>){
+            IList<dynamic> dataList = new List<dynamic>();
+            //todo:如果要首次加载就显示数据 就删除下面判断
+            if (!Request.IsAjaxRequest())
+            {
+                ViewBag.Amount = pageCount;
+                ViewBag.DataList = dataList;
+                ViewBag.PageSize = pageSize;
+                return View();
+            }
+            //xmlData 使用示例
+            // Dictionary<string, string> auditStatusList = IocHelper.Resolve<ArticleModule>().XmlDataCenter.GetData("AuditStatusType");
+            //editItem.AuditStatusName = auditStatusList[editItem.AuditStatusId.ToString()];
+            
+            
+            var criterionList = new List<ICriterion>();
+			
+			//linq的方式添加条件
+			//ICriterion equalCriterion1 = Restrictions.Where<<%= GetTableClassName(SourceTable) %>>(d => d.ParentName == "上级部门名称");
+			//criterionList.Add(equalCriterion1);
+
+			//另外一种添加方式
+			//criterionList.Add(new LikeExpression(<%= GetTableClassName(SourceTable) %>.ColumnNames.Name, "部门名称"));
+            <%-- 根据数据库中的标记生成对应要搜索的字段--%>
+            <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+                    if(DescriptionContains(em,"[search]")){
+                %>
+
+            //<%=GetDescription(em) %>
+            if (!string.IsNullOrEmpty(<%= ToProperCase(em.PropertyName) %>.Trim()))
+            {
+                ICriterion <%=ToProperCase( em.PropertyName) %>Criterion = Restrictions.Eq(<%= GetTableClassName(SourceTable) %>.ColumnNames.<%= em.PropertyName %>,<%= ToProperCase(em.PropertyName) %>.Trim());
+                criterionList.Add(<%=ToProperCase( em.PropertyName) %>Criterion);
+            }
+                <% 
+                }
+            } %>
+            //排序
+            Order order = Order.Desc(<%= GetTableClassName(SourceTable) %>.ColumnNames.<%=primaryKeyName%>);
+            //todo:逻辑删除过滤  可以直接删除
+            <%if(isDelete){ %>
+            criterionList.Add(Restrictions.Eq(<%= GetTableClassName(SourceTable) %>.ColumnNames.IsDelete, false));
+             <%} %>
+            //ICriterion isDeleteCriterion = Restrictions.Eq(<%= GetTableClassName(SourceTable) %>.ColumnNames.IsDelete, false);
+            //criterionList.Add(isDeleteCriterion);
+            
+			dataList = <%= GetTableClassName(SourceTable) %>Service.GetPagedList(pageSize, pageNumber, criterionList, order, ref pageCount).Select(
+                dataItem =>
+                {
+                    dynamic dItem= new {
+					Id=dataItem.Id.ToString(),
+			 <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+                    if(!DescriptionContains(em,"[hide]")){%>
+                //<%=GetDescription(em) %>
+                        <%if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
+                <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>.HasValue? (dataItem.<%=em.PropertyName%>.Value?"是":"否"):string.Empty,
+                        <%}else if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
+                <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>.HasValue? dataItem.<%=em.PropertyName%>.Value.ToString("yyyy-MM-dd"):string.Empty,
+                        <%}else if(em.SystemType.Contains("?")){%>
+                <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>.HasValue? dataItem.<%=em.PropertyName%>.Value.ToString():string.Empty,
+                        <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
+                <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>?"是":"否",
+                        <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
+                <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>.ToString("yyyy-MM-dd HH:mm"),
+                        <% }
+                        else{%>
+                <%=em.PropertyName%>=dataItem.<%=em.PropertyName%>,
+                        <%}%>
+                    <%}
+            } %>
+					};
+                    return dItem;
+                }).ToList();
+			
+			
+           //dataList = <%= GetTableClassName(SourceTable) %>Service.GetPagedList(pageSize, pageNumber, criterionList, order, ref pageCount)
+           //         .Select(item => GetViewBagItem(item)).ToList();
+                
+            var current = new
+                {
+                     Amount = pageCount,
+                     DataList = dataList
+                };
+            if (Request.IsAjaxRequest())
+            {
+                return Json(current, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                ViewBag.Amount = pageCount;
+                ViewBag.DataList = dataList;
+                ViewBag.PageSize = pageSize;
+                return View();
+            }
+       }
+       //添加view
+         public ActionResult <%=GetTableClassName(SourceTable)%>Add(){
+              <%= GetTableClassName(SourceTable) %> dataItem= new <%= GetTableClassName(SourceTable) %>();
+              ViewBag.Title = "新增<%= ClearNote(SourceTable.Description) %>";
+              ViewBag.IsUpdate = false;
+             //xmlData 使用示例
+            // Dictionary<string, string> auditStatusList = IocHelper.Resolve<ArticleModule>().XmlDataCenter.GetData("AuditStatusType");
+            //editItem.AuditStatusName = auditStatusList[editItem.AuditStatusId.ToString()];
+            ViewBag.<%= GetTableClassName(SourceTable) %> =  GetViewBagItem(dataItem);
+            return View("<%=GetTableClassName(SourceTable)%>Edit");
+         }
+       //添加保存
+	    [PermissionKey("<%=GetTableClassName(SourceTable)%>Add")]
+       public JsonResult <%=GetTableClassName(SourceTable)%>SaveAdd(<%= GetTableClassName(SourceTable) %>  editItem){
+            //数据验证，统一验证处理 
+            string message = Validate(editItem);
+            if (!string.IsNullOrEmpty(message))
+            {
+                return Json(new { Success = false, Msg = message }, JsonRequestBehavior.AllowGet);
+            }                        
+            <%= GetTableClassName(SourceTable) %>Service.Add(editItem);            
+            return Json(new { Success = true, Msg = "操作成功，已添加" }, JsonRequestBehavior.AllowGet);
+           
+       }
+       //修改 View
+       public ActionResult <%=GetTableClassName(SourceTable)%>Edit(int id=0){
+                   
+            <%= GetTableClassName(SourceTable) %> item = <%= GetTableClassName(SourceTable) %>Service.Get(id);
+            //验证数据是否存在
+            if (item == null)
+            {
+                return RedirectToAction("ErrMsgInfo", "Manage", new { msg = "未找到数据项" });
+            }
+            
+            ViewBag.IsUpdate = true;
+            ViewBag.Title ="<%= ClearNote(SourceTable.Description) %>编辑";
+             //xmlData 使用示例
+            // Dictionary<string, string> auditStatusList = IocHelper.Resolve<ArticleModule>().XmlDataCenter.GetData("AuditStatusType");
+            //editItem.AuditStatusName = auditStatusList[editItem.AuditStatusId.ToString()];
+            ViewBag.<%= GetTableClassName(SourceTable) %> = GetViewBagItem(item);
+            return View();
+       } 
+       
+       //修改 保存
+	    [PermissionKey("<%=GetTableClassName(SourceTable)%>Edit")]
+       public JsonResult <%=GetTableClassName(SourceTable)%>SaveEdit(<%= GetTableClassName(SourceTable) %>  editItem){
+            if (editItem.Id < 1)
+            {
+                return Json(new { Success = false, Msg = "未找到该数据" }, JsonRequestBehavior.AllowGet);
+            }
+            //如果id存在 就修改 否则添加
+            string message = Validate(editItem);
+            if (!string.IsNullOrEmpty(message))
+            {
+                return Json(new { Success = false, Msg = message }, JsonRequestBehavior.AllowGet);
+            }  
+                <%= GetTableClassName(SourceTable) %>  editInfo=<%= GetTableClassName(SourceTable) %>Service.Get(editItem.Id);            
+                if (editInfo == null || editInfo.Id < 1)
+                {
+                    return Json(new { Success = false, Msg = "未找到该数据" }, JsonRequestBehavior.AllowGet);
+                }
+              <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) {%>
+                editInfo.<%=em.PropertyName%>=editItem.<%=em.PropertyName%>;
+               <%} %>
+               
+              //<%= GetTableClassName(SourceTable) %>Service.Session.Evict(editItem);
+              <%= GetTableClassName(SourceTable) %>Service.Update(editInfo);
+            
+              return Json(new { Success = true, Msg = "操作成功，已修改" }, JsonRequestBehavior.AllowGet);
+           
+       }
+       // 统一验证
+        private string Validate(<%= GetTableClassName(SourceTable) %> editItem){
+             <% foreach(EntityMember em in entityManagerList){ 
+                  if(!em.Column.AllowDBNull && em.Column.SystemType != typeof(System.Boolean)){%>
+                  if (string.IsNullOrEmpty(editItem.<%=em.PropertyName %>))
+                    {
+                        return "请填写<%=GetDescription(em)%>";
+                    }                   
+                <% } 
+              } %>
+             return "";
+        }
+       //统一返回
+       private dynamic GetViewBagItem(<%= GetTableClassName(SourceTable) %> editItem)
+        {
+             var viewBagItem = new
+            {
+                //id
+                 editItem.Id,
+            <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
+                    if(!DescriptionContains(em,"[hide]")){%>
+                //<%=GetDescription(em) %>
+                        <%if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
+                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.HasValue? (editItem.<%=em.PropertyName%>.Value?"是":"否"):string.Empty,
+                        <%}else if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
+                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.HasValue? editItem.<%=em.PropertyName%>.Value.ToString("yyyy-MM-dd"):string.Empty,
+                        <%}else if(em.SystemType.Contains("?")){%>
+                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.HasValue? editItem.<%=em.PropertyName%>.Value.ToString():string.Empty,
+                        <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
+                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>?"是":"否",
+                        <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
+                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.ToString("yyyy-MM-dd HH:mm"),
+                        <% }
+                        else{%>
+                <%=em.PropertyName%>=editItem.<%=em.PropertyName%>,
+                        <%}%>
+                    <%}
+            } %>
+			 
+            };
+            
+            return viewBagItem;
+        }
+       
+       
+       // 删除 统一调用 
+       //todo:逻辑删除 字段未指定，需要手动调整      
+       public JsonResult <%= GetTableClassName(SourceTable) %>BatchDelete(int[] idList){
+            if(idList==null||idList.Length<1){
+                return Json(new { Success = false, Msg = "请先选择要删除的数据" }, JsonRequestBehavior.AllowGet);
+            }
+            
+                //直接删除
+                //<%= GetTableClassName(SourceTable) %>Service.Delete(Restrictions.In(<%= GetTableClassName(SourceTable) %>.ColumnNames.Id, idList));
+               //逻辑删除
+
+               //IList<<%= GetTableClassName(SourceTable) %>> batchList= <%= GetTableClassName(SourceTable) %>Service.GetList(Restrictions.In(<%= GetTableClassName(SourceTable) %>.ColumnNames.Id, idList));
+                //逻辑删除字段 修改
+               // foreach (var item in batchList)
+               // {
+               //     item.IsDelete = true;
+               //}
+               //<%= GetTableClassName(SourceTable) %>Service.Update(batchList);
+                
+            <%if(isDelete){ %>
+                //直接删除
+                <%= GetTableClassName(SourceTable) %>Service.Delete(Restrictions.In(<%= GetTableClassName(SourceTable) %>.ColumnNames.Id, idList));
+            <%} else { %>
+                //逻辑删除
+               IList<<%= GetTableClassName(SourceTable) %>> batchList= <%= GetTableClassName(SourceTable) %>Service.GetList(Restrictions.In(<%= GetTableClassName(SourceTable) %>.ColumnNames.Id, idList));
+                //逻辑删除字段 修改
+                foreach (var item in batchList)
+                {
+                    item.IsDelete = true;
+                }
+                
+                <%= GetTableClassName(SourceTable) %>Service.Update(batchList);
+            <%} %>
+         return Json(new { Success = true, Msg = "删除成功" }, JsonRequestBehavior.AllowGet);
+       }
+       
+    }
+}

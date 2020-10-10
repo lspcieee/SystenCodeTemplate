@@ -1,0 +1,417 @@
+﻿<%-- 
+Name: EntityFrameworkCoreMaste.cst
+Author: puchbin
+Description: 生成CMS模块入口
+--%>
+<%@ CodeTemplate Language="C#"  ResponseEncoding="UTF-8" Src="NetCoreCst\Helpers\CsNHibernateHelper.cs" Inherits="CsNHibernateHelper" TargetLanguage="C#" OutputType="None" Debug="True" Description="Generates a complete set of Maps, Business Objects, Manager Objects, and a ManagerFactory for NHibernate, the adds them to the specified .csproj file." %>
+
+<%@ Property Name="ModuleTables" Type="SchemaExplorer.TableSchemaCollection"  Optional="False" Category="1. 数据库设置" Description="请选择模块所包含的表" Filter="SourceTable"%>
+
+<%@ Property Name="ExcludedColumns" Type="CodeSmith.CustomProperties.StringCollection" Default="" Optional="True" Category="1. 数据库设置" Description="使用正则表达式排除表中的列" %>
+<%@ Property Name="TablePrefix" Type="System.String" Default=""  Optional="False" Category="1. 数据库设置" Description="生成实体时,需要去除的表前缀.（下划线前边的一部分，不包括下划线）" %>
+<%@ Property Name="VersionColumn" Type="System.String" Default="^((R|r)ow)?(V|v)ersion$" Optional="True" Category="1. 数据库设置" Description="获取version字段名称的正则表达式" %>
+
+<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="2. 程序集" Description="模块程序集名称" %>
+
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String"  Default="KDSoft.KDCMS.Modules.XX.Domain" Optional="False" Category="3. 命名空间" Description="实体命名空间" %>
+<%@ Property Name="DatabaseType" Type="DatabaseTypeEnum" Default="SqlServer" Category="4. 方言适配数据库类型" Description="生成castle配置时使用的方言数据库类型" %>
+
+
+<%@ Property Name="ModuleName" Type="System.String" Default="信息发布模块" Optional="False" Category="5. 模块配置" Description="模块中文名称" %>
+<%@ Property Name="ModuleAuthor" Default="KingDon Soft" Category="5. 模块配置" Description="开发者" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="ModuleWebsite" Default="http://www.kingdonsoft.com/" Category="5. 模块配置" Description="开发者网站" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="ModuleDescription" Default="核心模块" Category="5. 模块配置" Description="描述" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="ModuleCategory" Default="Core" Category="5. 模块配置" Description="种类" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="ModuleVersion" Default="1.0.0" Category="5. 模块配置" Description="版本号" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="ModuleClassName" Default="CoreModule" Category="5. 模块配置" Description="模块接口实现类名称" 
+Type="System.String"  Optional="False"  %>
+<%@ Property Name="PageType" Type="PageTypeEnum" Default="Quasar" Category="5. 模块配置" Description="宿主类型，Quasar页面"  %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="Microsoft.Build.Engine" %>
+<%@ Assembly Name="Microsoft.Build.Utilities" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\Common\NHibernateHelper" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import NameSpace="System.IO" %>
+<%@ Import Namespace="CodeSmith.CustomProperties" %>
+
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+
+
+<%@ Register Name="BusinessObjectTemplate" Template="NetCoreCst\Entities\BusinessObject.cst" %>
+<%@ Register Name="EditableBusinessObjectTemplate" Template="NetCoreCst\Entities\EditableBusinessObject.cst" %>
+
+<%@ Register Name="ServiceTemplate" Template="NetCoreCst\Service\Service.cst" %>
+<%@ Register Name="IServiceTemplate" Template="NetCoreCst\Service\IService.cst" %>
+<%@ Register Name="ServiceConfigTemplate" Template="NetCoreCst\Service\ServiceConfig.cst" %>
+
+<%@ Register Name="MySqlServiceTemplate" Template="NetCoreCst\Service\Dialect\MySqlService.cst" %>
+<%@ Register Name="OracleServiceTemplate" Template="NetCoreCst\Service\Dialect\OracleService.cst" %>
+<%@ Register Name="SqlServerServiceTemplate" Template="NetCoreCst\Service\Dialect\SqlServerService.cst" %>
+<%@ Register Name="SqliteServerServiceTemplate" Template="NetCoreCst\Service\Dialect\SqliteServerService.cst" %>
+
+<%@ Register Name="StartupTemplate" Template="NetCoreCst\Startup.cst" %>
+
+<%@ Register Name="ModuleCsTemplate" Template="NetCoreCst\Module.Cs.cst" %>
+<%@ Register Name="ManagePermissionsTemplate" Template="NetCoreCst\ManagePermissions.cst" %>
+<%@ Register Name="CsprojTemplate" Template="NetCoreCst\csproj.cst" %>
+<%@ Register Name="ModuleJsonTemplate" Template="NetCoreCst\Module.json.cst" %>
+<%@ Register Name="LaunchSettingsTemplate" Template="NetCoreCst\Properties\launchSettings.cst" %>
+
+<script runat="template">
+//数据库类型
+public enum DatabaseTypeEnum
+{
+    SqlServer,
+}
+//生成页面 类型
+public enum PageTypeEnum{
+    Quasar,
+}
+
+public TableSchemaCollection ExcludedTables;
+public override void Render(TextWriter writer)
+{
+    
+    ExcludedTables = new TableSchemaCollection();
+    if(ModuleTables==null||ModuleTables.Count<1){
+        Alert("没有选择要生成的表。属性：ModuleTables");
+        return;
+    }
+    if( string.IsNullOrEmpty( this.TablePrefix)){
+        Alert("请设置要清除的表前缀.属性：TablePrefix");
+        return;
+    }
+    string[] excludedColumns = (ExcludedColumns != null) ? ExcludedColumns.ToArray() : new string[0]{};
+	HelperInit(this.TablePrefix, this.SystemCSharp, this.KeyWords, excludedColumns, this.VersionColumn, ModuleTables[0].Database.Provider.Name);
+	
+    foreach(TableSchema table in ModuleTables)
+        if(!ExcludedTables.Contains(table) && !table.HasPrimaryKey)
+        {
+            Alert(
+                String.Format("表 \"{0}\" 没有设置主键,将忽略此表.", table.Name)
+                );
+            ExcludedTables.Add(table);
+        }
+    
+	foreach(TableSchema table in ModuleTables)
+		if(!ExcludedTables.Contains(table))
+		{
+			RenderBusinessObjects(table);
+            RenderService(table);
+            //RenderManage(table);
+		}
+	RenderServicejson();
+    RenderCsproj();
+	RegisterReferences();
+    RenderManagePermissions();
+    RenderModuleCs();
+    Startup();
+    Alert(string.Format("代码生成完成,\n\n首次生成：请在解决方案'3.1内容模型'或'3.2模块扩展'添加现有项目文件'{0}.csproj'	\n\n不是首次生成：请将新增表对应的Domain，Mappings，Service文件包含到项目'{0}'中，	\n并将Mappings中后缀为'.hbm.xml'的文件'生成操作'设置为'嵌入的资源'。",this.AssemblyName));
+}
+
+//startup 开始cs文件
+private void Startup()
+{
+       string webConfigFileName =  "Startup.cs";
+     if(!File.Exists(webConfigFileName)){
+      StartupTemplate csprojTemplateObject = this.Create<StartupTemplate>(); 
+      csprojTemplateObject.RenderToFile(GetOutputFile(webConfigFileName, null), true); 
+     }
+     
+}
+
+private void RenderModuleCs()
+{
+         // 生成模块配置文件
+    string moduleConfigFileName = String.Format("{0}Module.cs",this.ModuleCategory);
+   
+    if(!File.Exists(moduleConfigFileName)){
+        ModuleCsTemplate csprojTemplateObject = this.Create<ModuleCsTemplate>(); 
+            csprojTemplateObject.AssemblyName=this.AssemblyName;
+            csprojTemplateObject.ServiceNamespace = this.ServiceNamespace;
+            csprojTemplateObject.IServiceNamespace = this.IServiceNamespace;
+            csprojTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+            csprojTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+            csprojTemplateObject.ModuleCategory = this.ModuleCategory;
+            csprojTemplateObject.ModuleTables = this.ModuleTables;
+            csprojTemplateObject.ModuleName = this.ModuleName;
+            csprojTemplateObject.RenderToFile(GetOutputFile(moduleConfigFileName, null), true); 
+    }
+}
+
+private void RenderManagePermissions()
+{
+     // 生成模块配置文件
+    string moduleConfigFileName = String.Format("{0}ManagePermissions.cs", this.ModuleCategory);
+        //检测配置文件已存在，则生成.bak文件，手动合并
+    if(File.Exists(moduleConfigFileName)){
+        moduleConfigFileName += ".generated";
+    }
+    //if(!File.Exists(moduleConfigFileName)){
+        ManagePermissionsTemplate csprojTemplateObject = this.Create<ManagePermissionsTemplate>(); 
+            csprojTemplateObject.AssemblyName=this.AssemblyName;
+            csprojTemplateObject.ServiceNamespace = this.ServiceNamespace;
+            csprojTemplateObject.IServiceNamespace = this.IServiceNamespace;
+            csprojTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+            csprojTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+            csprojTemplateObject.ModuleTables = this.ModuleTables;
+            csprojTemplateObject.ModuleName = this.ModuleName;
+            csprojTemplateObject.RenderToFile(GetOutputFile(moduleConfigFileName, null), true); 
+    //}
+}
+
+//生成实体类
+private void RenderBusinessObjects(TableSchema table)
+{
+	string fileName = String.Format("{0}{1}.generated.cs", GetFolder(@"_generated\Domain"), GetTableClassName(table));
+	string editableFileName = String.Format("{0}{1}.cs", GetFolder(@"Domain"), GetTableClassName(table));
+	
+    //检测是否存在，存在的文件不再生成
+	if(!File.Exists(editableFileName))
+	{
+		EditableBusinessObjectTemplate editableBusinessObject = this.Create<EditableBusinessObjectTemplate>();
+		editableBusinessObject.EntitiesNamespace = this.EntitiesNamespace;
+		
+		editableBusinessObject.SourceTable = table;
+		
+		editableBusinessObject.RenderToFile(GetOutputFile(editableFileName, null), true);
+	}
+	
+	BusinessObjectTemplate businessObject = this.Create<BusinessObjectTemplate>();
+	businessObject.EntitiesNamespace = this.EntitiesNamespace;
+	businessObject.SourceTable = table;
+	businessObject.ExcludedTables = this.ExcludedTables;
+    businessObject.FrameworkNamespace = this.FrameworkNamespace;
+
+	businessObject.RenderToFile(GetOutputFile(fileName, editableFileName), true);
+}
+private void RenderCsproj(){
+    //生成模块配置文件
+    string moduleConfigFileName = String.Format("{0}Module.json", GetFolder(@""));
+    if(!File.Exists(moduleConfigFileName)){
+        ModuleJsonTemplate moduleConfigTemplateObject = this.Create<ModuleJsonTemplate>();
+        moduleConfigTemplateObject.AssemblyName=this.AssemblyName;
+        moduleConfigTemplateObject.ServiceNamespace = this.ServiceNamespace;
+        moduleConfigTemplateObject.IServiceNamespace = this.IServiceNamespace;
+        moduleConfigTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+        moduleConfigTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+        moduleConfigTemplateObject.ModuleTables = this.ModuleTables;
+        
+        moduleConfigTemplateObject.ModuleName = this.ModuleName;
+        moduleConfigTemplateObject.ModuleAuthor = this.ModuleAuthor;
+        moduleConfigTemplateObject.ModuleWebsite = this.ModuleWebsite;
+        moduleConfigTemplateObject.ModuleDescription = this.ModuleDescription;
+        moduleConfigTemplateObject.ModuleCategory = this.ModuleCategory;
+        moduleConfigTemplateObject.ModuleVersion = this.ModuleVersion;
+        moduleConfigTemplateObject.ModuleClassName = this.ModuleClassName;
+        
+        moduleConfigTemplateObject.RenderToFile(GetOutputFile(moduleConfigFileName, null), true);
+    }
+    //生成模块接口实现类文件
+    
+    //生成解决方案文件
+    string csprojFileName = String.Format("{0}{1}.csproj", GetFolder(@""), this.AssemblyName);
+      if(this.PageType.Equals(PageTypeEnum.Quasar))
+      {
+        if(!File.Exists(csprojFileName)){
+            CsprojTemplate csprojTemplateObject = this.Create<CsprojTemplate>();
+            csprojTemplateObject.AssemblyName=this.AssemblyName;
+            csprojTemplateObject.ServiceNamespace = this.ServiceNamespace;
+            csprojTemplateObject.IServiceNamespace = this.IServiceNamespace;
+            csprojTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+            csprojTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+            csprojTemplateObject.ModuleTables = this.ModuleTables;
+            csprojTemplateObject.RenderToFile(GetOutputFile(csprojFileName, null), true);
+            
+            string assemblyInfoFileName = String.Format("{0}launchSettings.cs", GetFolder(@"Properties"));
+            LaunchSettingsTemplate assemblyInfoTemplateObject = this.Create<LaunchSettingsTemplate>();
+            assemblyInfoTemplateObject.AssemblyName=this.AssemblyName;
+            assemblyInfoTemplateObject.ServiceNamespace = this.ServiceNamespace;
+            assemblyInfoTemplateObject.IServiceNamespace = this.IServiceNamespace;
+            assemblyInfoTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+            assemblyInfoTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+            assemblyInfoTemplateObject.ModuleTables = this.ModuleTables;
+            assemblyInfoTemplateObject.RenderToFile(GetOutputFile(assemblyInfoFileName, null), true);
+        }
+      }
+
+}
+private void RenderServicejson()
+{
+    string serviceConfigFileName = String.Format("{0}Service.json", GetFolder(@"Service"));
+    //检测配置文件已存在，则生成.bak文件，手动合并
+    if(File.Exists(serviceConfigFileName)){
+        serviceConfigFileName += ".generated";
+    }
+    
+    ServiceConfigTemplate serviceConfigTemplateObject = this.Create<ServiceConfigTemplate>();
+    serviceConfigTemplateObject.AssemblyName=this.AssemblyName;
+    serviceConfigTemplateObject.ServiceNamespace = this.ServiceNamespace;
+    serviceConfigTemplateObject.IServiceNamespace = this.IServiceNamespace;
+    serviceConfigTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+    serviceConfigTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+    serviceConfigTemplateObject.ModuleTables = this.ModuleTables;
+    serviceConfigTemplateObject.DatabaseType=this.DatabaseType.ToString();
+    serviceConfigTemplateObject.RenderToFile(GetOutputFile(serviceConfigFileName, null), true);
+}
+
+
+//服务生成
+private void RenderService(TableSchema table)
+{
+    //服务代码生成
+	string serviceFileName = String.Format("{0}{1}Service.cs", GetFolder(@"Service"), GetTableClassName(table));
+    //检测是否存在，存在的文件不再生成
+    if(!File.Exists(serviceFileName))
+    {
+        ServiceTemplate serviceTemplateObject = this.Create<ServiceTemplate>();
+		serviceTemplateObject.ServiceNamespace = this.ServiceNamespace;
+        serviceTemplateObject.IServiceNamespace = this.IServiceNamespace;
+        serviceTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+        serviceTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+		serviceTemplateObject.SourceTable = table;
+        
+		serviceTemplateObject.RenderToFile(GetOutputFile(serviceFileName, null), true);
+    }
+    
+    string iServiceFileName = String.Format("{0}I{1}Service.cs", GetFolder(@"IService"), GetTableClassName(table));
+    //iServiceFileName 检测是否存在，存在的文件不再生成
+    if(!File.Exists(iServiceFileName))
+    {
+        IServiceTemplate iServiceTemplateObject = this.Create<IServiceTemplate>();
+		iServiceTemplateObject.ServiceNamespace = this.ServiceNamespace;
+        iServiceTemplateObject.IServiceNamespace = this.IServiceNamespace;
+        iServiceTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+        iServiceTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+		iServiceTemplateObject.SourceTable = table;
+        
+		iServiceTemplateObject.RenderToFile(GetOutputFile(iServiceFileName, null), true);
+    }
+    
+
+    
+	string dialectSqlServerServiceFileName = String.Format("{0}{1}SqlServerService.cs", GetFolder(@"Service\Dialect\SqlServer"), GetTableClassName(table));
+    //检测是否存在，存在的文件不再生成
+    if(!File.Exists(dialectSqlServerServiceFileName))
+    {
+        SqlServerServiceTemplate sqlServerServiceTemplateObject = this.Create<SqlServerServiceTemplate>();
+		sqlServerServiceTemplateObject.ServiceNamespace = this.ServiceNamespace;
+        sqlServerServiceTemplateObject.IServiceNamespace = this.IServiceNamespace;
+        sqlServerServiceTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+        sqlServerServiceTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+		sqlServerServiceTemplateObject.SourceTable = table;
+        
+		sqlServerServiceTemplateObject.RenderToFile(GetOutputFile(dialectSqlServerServiceFileName, null), true);
+    }
+    
+	string dialectMySqlServiceFileName = String.Format("{0}{1}MySqlService.cs", GetFolder(@"Service\Dialect\MySql"), GetTableClassName(table));
+    //检测是否存在，存在的文件不再生成
+    if(!File.Exists(dialectMySqlServiceFileName))
+    {
+        MySqlServiceTemplate mySqlServiceTemplateObject = this.Create<MySqlServiceTemplate>();
+		mySqlServiceTemplateObject.ServiceNamespace = this.ServiceNamespace;
+        mySqlServiceTemplateObject.IServiceNamespace = this.IServiceNamespace;
+        mySqlServiceTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+        mySqlServiceTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+		mySqlServiceTemplateObject.SourceTable = table;
+        
+		mySqlServiceTemplateObject.RenderToFile(GetOutputFile(dialectMySqlServiceFileName, null), true);
+    }
+
+	string dialectOracleServiceFileName = String.Format("{0}{1}OracleService.cs", GetFolder(@"Service\Dialect\Oracle"), GetTableClassName(table));
+    //检测是否存在，存在的文件不再生成
+    if(!File.Exists(dialectOracleServiceFileName))
+    {
+        OracleServiceTemplate oracleServiceTemplateObject = this.Create<OracleServiceTemplate>();
+		oracleServiceTemplateObject.ServiceNamespace = this.ServiceNamespace;
+        oracleServiceTemplateObject.IServiceNamespace = this.IServiceNamespace;
+        oracleServiceTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+        oracleServiceTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+		oracleServiceTemplateObject.SourceTable = table;
+        
+		oracleServiceTemplateObject.RenderToFile(GetOutputFile(dialectOracleServiceFileName, null), true);
+    }
+    
+	string dialectSqliteServiceFileName = String.Format("{0}{1}SqliteService.cs", GetFolder(@"Service\Dialect\Sqlite"), GetTableClassName(table));
+    //检测是否存在，存在的文件不再生成
+    if(!File.Exists(dialectSqliteServiceFileName))
+    {
+        SqliteServerServiceTemplate sqliteServerServiceTemplateObject = this.Create<SqliteServerServiceTemplate>();
+		sqliteServerServiceTemplateObject.ServiceNamespace = this.ServiceNamespace;
+        sqliteServerServiceTemplateObject.IServiceNamespace = this.IServiceNamespace;
+        sqliteServerServiceTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+        sqliteServerServiceTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+		sqliteServerServiceTemplateObject.SourceTable = table;
+        
+		sqliteServerServiceTemplateObject.RenderToFile(GetOutputFile(dialectSqliteServiceFileName, null), true);
+    }
+}
+
+private void RegisterReferences()
+{
+    //注册组件
+
+}
+
+private OutputFile GetOutputFile(string fileName, string dependentUpon, params object[] metaData)
+{
+	OutputFile outputFile = new OutputFile(fileName);
+	
+	if(!String.IsNullOrEmpty(dependentUpon))
+		outputFile.DependentUpon = Path.GetFullPath(dependentUpon);
+	
+	if(metaData.Length % 2 != 0)
+		throw new Exception("Invalid Metadata: Provide 2 objects per entry, a String (key) followed by an Object.");
+	for(int x=0; x<metaData.Length; x+=2)
+    	outputFile.Metadata.Add(metaData[x].ToString(), metaData[x+1]);
+		
+	return outputFile;
+}
+
+/// <summary>
+/// 获取目录
+/// </summary>
+/// <param name="folder"></param>
+/// <returns></returns>
+private string GetFolder(string folder)
+{
+	if (folder.Contains(".") && !folder.EndsWith("."))
+        folder = folder.Substring(folder.LastIndexOf('.')+1);
+		
+	if(String.IsNullOrEmpty(folder))
+		folder = String.Empty;
+	else
+	{
+		if (!Directory.Exists(folder))
+            Directory.CreateDirectory(folder);
+			
+		if (!folder.EndsWith("\\"))
+			folder = String.Format("{0}\\", folder);
+	}
+	return folder;
+}
+/// <summary>
+///  
+/// </summary>
+/// <param name="folder"></param>
+/// <returns></returns>
+private string GetLastAssemblyName()
+{
+    var AssemblyNames= this.AssemblyName.Split('.');
+	 
+	return AssemblyNames[AssemblyNames.Length-1];
+}
+</script>

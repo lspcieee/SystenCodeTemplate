@@ -1,0 +1,45 @@
+﻿<%-- 
+Name: SqlServerService.cst
+Author: lspcieee
+Description: SqlServerService生成
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" Inherits="CsNHibernateHelper" Src="../../Helpers/CsNHibernateHelper.cs" TargetLanguage="C#" Debug="False" Description="Generates a Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3b. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
+using <%= this.EntitiesNamespace %>;
+using <%= this.FrameworkNamespace %>.Dao;
+using NHibernate;
+
+namespace <%= this.ServiceNamespace %>.Dialect
+{
+    /// <summary>
+    /// <%= SourceTable.Description %>服务[针对SqlServer 方言sql实现]
+    /// </summary>
+    public class <%= GetTableClassName(SourceTable) %>SqlServerService : <%= GetTableClassName(SourceTable) %>Service
+    {
+        ///// <summary>
+        ///// 直接调用sql示例
+        ///// </summary>
+        ///// <returns></returns>
+        //public override int GetCountCreateSqlQuery()
+        //{
+        //    string queryString = string.Format("SELECT COUNT(*) AS myCount FROM {0}", <%= GetTableClassName(SourceTable) %>.TableName);
+        //    ISQLQuery query = Session.CreateSQLQuery(queryString)
+        //        .AddScalar("myCount", NHibernateUtil.Int32);
+        //    var count= query.UniqueResult<int>();
+        //    return count;
+        //}
+    }
+    
+}
