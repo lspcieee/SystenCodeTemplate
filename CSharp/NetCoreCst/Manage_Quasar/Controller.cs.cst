@@ -34,23 +34,20 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
         primaryKeyName= entityManager.PrimaryKey.KeyColumn.PropertyName;
 	} 
     
-   bool isDelete=entityManager.MembersNoKeyNoVersion.SingleOrDefault(m=>m.PropertyName=="IsDelete")==null;
+   bool isDelete=entityManager.MembersNoKeyNoVersion.SingleOrDefault(m=>m.PropertyName=="IsDeleted")==null;
 %>
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Web.Mvc;
-using NHibernate.Criterion;
-using Systen.Framework.MVC;
-using Systen.Util.Ext;
+using Microsoft.AspNetCore.Mvc;
+using Systen.Framework.Dao;
 using Systen.Framework.Module.Menu;
 using <%= this.EntitiesNamespace %>;
 using <%= this.IServiceNamespace %>;
+
 namespace <%= this.AssemblyName %>.Controllers
 {
-    public class <%= GetTableClassName(SourceTable) %>Controller : ContainerController
+    public class <%= GetTableClassName(SourceTable) %>Controller : ApiControllerBase
     {   
         /// <summary>
         /// <%= SourceTable.Description %>操作对象
@@ -68,29 +65,17 @@ namespace <%= this.AssemblyName %>.Controllers
            
             
         //加载列表
-        public ActionResult <%=GetTableClassName(SourceTable)%>List(int pageSize = 20, int pageNumber = 1, int pageCount=0 <%=listParameter%>){
-            IList<dynamic> dataList = new List<dynamic>();
-            //todo:如果要首次加载就显示数据 就删除下面判断
-            if (!Request.IsAjaxRequest())
+        public async Task<OperationResult> <%=GetTableClassName(SourceTable)%>List(int pageSize = 20, int pageNumber = 1, int pageCount=0 <%=listParameter%>){
+            var resultData = new OperationResult()
             {
-                ViewBag.Amount = pageCount;
-                ViewBag.DataList = dataList;
-                ViewBag.PageSize = pageSize;
-                return View();
-            }
-            //xmlData 使用示例
-            // Dictionary<string, string> auditStatusList = IocHelper.Resolve<ArticleModule>().XmlDataCenter.GetData("AuditStatusType");
-            //editItem.AuditStatusName = auditStatusList[editItem.AuditStatusId.ToString()];
-            
-            
-            var criterionList = new List<ICriterion>();
-			
-			//linq的方式添加条件
-			//ICriterion equalCriterion1 = Restrictions.Where<<%= GetTableClassName(SourceTable) %>>(d => d.ParentName == "上级部门名称");
-			//criterionList.Add(equalCriterion1);
-
-			//另外一种添加方式
-			//criterionList.Add(new LikeExpression(<%= GetTableClassName(SourceTable) %>.ColumnNames.Name, "部门名称"));
+                StatusCode = OperationResultStatus.Error,
+                Message = "获取数据失败!"
+            };
+			IQueryable<<%=GetTableClassName(SourceTable)%>> queryable = <%=GetTableClassName(SourceTable)%>Service.Table;
+            //todo:逻辑删除过滤  可以直接删除
+            <%if(isDelete){ %>
+            queryable = queryable.Where(dt => !dt.IsDeleted);
+             <%} %>
             <%-- 根据数据库中的标记生成对应要搜索的字段--%>
             <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
                     if(DescriptionContains(em,"[search]")){
@@ -99,22 +84,21 @@ namespace <%= this.AssemblyName %>.Controllers
             //<%=GetDescription(em) %>
             if (!string.IsNullOrEmpty(<%= ToProperCase(em.PropertyName) %>.Trim()))
             {
-                ICriterion <%=ToProperCase( em.PropertyName) %>Criterion = Restrictions.Eq(<%= GetTableClassName(SourceTable) %>.ColumnNames.<%= em.PropertyName %>,<%= ToProperCase(em.PropertyName) %>.Trim());
-                criterionList.Add(<%=ToProperCase( em.PropertyName) %>Criterion);
+                 queryable = queryable.Where(dt => dt.<%= em.PropertyName %> == <%= ToProperCase(em.PropertyName) %>.Trim());
             }
                 <% 
                 }
             } %>
             //排序
-            Order order = Order.Desc(<%= GetTableClassName(SourceTable) %>.ColumnNames.<%=primaryKeyName%>);
-            //todo:逻辑删除过滤  可以直接删除
-            <%if(isDelete){ %>
-            criterionList.Add(Restrictions.Eq(<%= GetTableClassName(SourceTable) %>.ColumnNames.IsDelete, false));
-             <%} %>
-            //ICriterion isDeleteCriterion = Restrictions.Eq(<%= GetTableClassName(SourceTable) %>.ColumnNames.IsDelete, false);
-            //criterionList.Add(isDeleteCriterion);
+            queryable = queryable.OrderByDescending(dt => dt.<%=primaryKeyName%>);
+            //排序
+            //IOrderedQueryable<Manager> 
+            //    OrderBy(IQueryable<Manager> order)
+            //    => order.OrderByDescending(manager => manager.OrderNumber);
             
-			dataList = <%= GetTableClassName(SourceTable) %>Service.GetPagedList(pageSize, pageNumber, criterionList, order, ref pageCount).Select(
+			IPageList<<%= GetTableClassName(SourceTable) %>> pageList =await <%= GetTableClassName(SourceTable) %>Service.GetPageList(queryable, null, null, pageNumber, pageSize);
+            
+            IList<dynamic> dataList = pageList.Items.Select(
                 dataItem =>
                 {
                     dynamic dItem= new {
@@ -143,95 +127,128 @@ namespace <%= this.AssemblyName %>.Controllers
                 }).ToList();
 			
 			
-           //dataList = <%= GetTableClassName(SourceTable) %>Service.GetPagedList(pageSize, pageNumber, criterionList, order, ref pageCount)
-           //         .Select(item => GetViewBagItem(item)).ToList();
+           //IList<dynamic> dataList = pageList.Items.Select(item => GetViewDataItem(item)).ToList();
                 
-            var current = new
-                {
-                     Amount = pageCount,
-                     DataList = dataList
-                };
-            if (Request.IsAjaxRequest())
+            resultData.Result = new
             {
-                return Json(current, JsonRequestBehavior.AllowGet);
-            }
-            else
-            {
-                ViewBag.Amount = pageCount;
-                ViewBag.DataList = dataList;
-                ViewBag.PageSize = pageSize;
-                return View();
-            }
+                DataList = dataList,
+            };
+            resultData.Message = "ok";
+            resultData.TotalCount = pageList.TotalCount;
+            resultData.StatusCode = OperationResultStatus.Success;
+            return resultData;
        }
-       //添加view
-         public ActionResult <%=GetTableClassName(SourceTable)%>Add(){
-              <%= GetTableClassName(SourceTable) %> dataItem= new <%= GetTableClassName(SourceTable) %>();
-              ViewBag.Title = "新增<%= ClearNote(SourceTable.Description) %>";
-              ViewBag.IsUpdate = false;
+       //添加
+       [HttpGet]
+       public async Task<OperationResult> <%=GetTableClassName(SourceTable)%>Add(){
+            var resultData = new OperationResult()
+            {
+                StatusCode = OperationResultStatus.Error,
+                Message = "获取数据失败!"
+            };
+            <%= GetTableClassName(SourceTable) %> editItem= new <%= GetTableClassName(SourceTable) %>();            
              //xmlData 使用示例
             // Dictionary<string, string> auditStatusList = IocHelper.Resolve<ArticleModule>().XmlDataCenter.GetData("AuditStatusType");
             //editItem.AuditStatusName = auditStatusList[editItem.AuditStatusId.ToString()];
-            ViewBag.<%= GetTableClassName(SourceTable) %> =  GetViewBagItem(dataItem);
-            return View("<%=GetTableClassName(SourceTable)%>Edit");
+            resultData.Result = new
+            {
+                <%= GetTableClassName(SourceTable) %> = GetViewDataItem(editItem),
+            };
+            resultData.Message = "ok";
+            resultData.StatusCode = OperationResultStatus.Success;
+            return resultData;
          }
        //添加保存
+       [HttpPost]
 	    [PermissionKey("<%=GetTableClassName(SourceTable)%>Add")]
-       public JsonResult <%=GetTableClassName(SourceTable)%>SaveAdd(<%= GetTableClassName(SourceTable) %>  editItem){
+       public async Task<OperationResult> <%=GetTableClassName(SourceTable)%>SaveAdd(<%= GetTableClassName(SourceTable) %>  editItem){
+            var resultData = new OperationResult()
+            {
+                StatusCode = OperationResultStatus.Error,
+                Message = "获取数据失败!"
+            };
             //数据验证，统一验证处理 
             string message = Validate(editItem);
             if (!string.IsNullOrEmpty(message))
             {
-                return Json(new { Success = false, Msg = message }, JsonRequestBehavior.AllowGet);
+                return resultData;
             }                        
-            <%= GetTableClassName(SourceTable) %>Service.Add(editItem);            
-            return Json(new { Success = true, Msg = "操作成功，已添加" }, JsonRequestBehavior.AllowGet);
+            await <%= GetTableClassName(SourceTable) %>Service.Add(editItem);            
+             resultData.Result = new
+            {
+                <%= GetTableClassName(SourceTable) %> = GetViewDataItem(editItem),
+            };
+
+            resultData.Message = "ok";
+            resultData.StatusCode = OperationResultStatus.Success;
+            return resultData;
            
        }
        //修改 View
-       public ActionResult <%=GetTableClassName(SourceTable)%>Edit(int id=0){
-                   
-            <%= GetTableClassName(SourceTable) %> item = <%= GetTableClassName(SourceTable) %>Service.Get(id);
-            //验证数据是否存在
-            if (item == null)
+       [HttpGet]
+       public async Task<OperationResult> <%=GetTableClassName(SourceTable)%>Edit(long id=0){
+            var resultData = new OperationResult()
             {
-                return RedirectToAction("ErrMsgInfo", "Manage", new { msg = "未找到数据项" });
+                StatusCode = OperationResultStatus.Error,
+                Message = "未找到数据项!"
+            };
+            <%= GetTableClassName(SourceTable) %> editItem =await <%= GetTableClassName(SourceTable) %>Service.Get(dt=>dt.Id==id);
+            //验证数据是否存在
+           if (editItem == null || editItem.Id < 1)
+            {
+                return resultData;
             }
             
-            ViewBag.IsUpdate = true;
-            ViewBag.Title ="<%= ClearNote(SourceTable.Description) %>编辑";
              //xmlData 使用示例
             // Dictionary<string, string> auditStatusList = IocHelper.Resolve<ArticleModule>().XmlDataCenter.GetData("AuditStatusType");
             //editItem.AuditStatusName = auditStatusList[editItem.AuditStatusId.ToString()];
-            ViewBag.<%= GetTableClassName(SourceTable) %> = GetViewBagItem(item);
-            return View();
+           resultData.Result = new
+            {
+                <%= GetTableClassName(SourceTable) %> = GetViewDataItem(editItem),
+            };
+            resultData.Message = "ok";
+            resultData.StatusCode = OperationResultStatus.Success;
+            return resultData;
        } 
        
        //修改 保存
+       [HttpPost]
 	    [PermissionKey("<%=GetTableClassName(SourceTable)%>Edit")]
-       public JsonResult <%=GetTableClassName(SourceTable)%>SaveEdit(<%= GetTableClassName(SourceTable) %>  editItem){
+       public async Task<OperationResult> <%=GetTableClassName(SourceTable)%>SaveEdit(<%= GetTableClassName(SourceTable) %>  editItem){
+            var resultData = new OperationResult()
+            {
+                StatusCode = OperationResultStatus.Error,
+                Message = "获取数据失败!"
+            };
             if (editItem.Id < 1)
             {
-                return Json(new { Success = false, Msg = "未找到该数据" }, JsonRequestBehavior.AllowGet);
+                return resultData;
             }
-            //如果id存在 就修改 否则添加
+            //校验
             string message = Validate(editItem);
             if (!string.IsNullOrEmpty(message))
             {
-                return Json(new { Success = false, Msg = message }, JsonRequestBehavior.AllowGet);
+               return resultData;
             }  
-                <%= GetTableClassName(SourceTable) %>  editInfo=<%= GetTableClassName(SourceTable) %>Service.Get(editItem.Id);            
+            //验证值是否存在
+                <%= GetTableClassName(SourceTable) %>  editInfo=await <%= GetTableClassName(SourceTable) %>Service.Get(dt=>dt.Id==editItem.Id);            
                 if (editInfo == null || editInfo.Id < 1)
                 {
-                    return Json(new { Success = false, Msg = "未找到该数据" }, JsonRequestBehavior.AllowGet);
+                    return resultData;
                 }
               <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) {%>
                 editInfo.<%=em.PropertyName%>=editItem.<%=em.PropertyName%>;
                <%} %>
                
-              //<%= GetTableClassName(SourceTable) %>Service.Session.Evict(editItem);
-              <%= GetTableClassName(SourceTable) %>Service.Update(editInfo);
+             await  <%= GetTableClassName(SourceTable) %>Service.Update(editInfo);
             
-              return Json(new { Success = true, Msg = "操作成功，已修改" }, JsonRequestBehavior.AllowGet);
+              resultData.Result = new
+            {
+                <%= GetTableClassName(SourceTable) %> = GetViewDataItem(editItem),
+            };
+            resultData.Message = "ok";
+            resultData.StatusCode = OperationResultStatus.Success;
+            return resultData;
            
        }
        // 统一验证
@@ -247,7 +264,7 @@ namespace <%= this.AssemblyName %>.Controllers
              return "";
         }
        //统一返回
-       private dynamic GetViewBagItem(<%= GetTableClassName(SourceTable) %> editItem)
+       private dynamic GetViewDataItem(<%= GetTableClassName(SourceTable) %> editItem)
         {
              var viewBagItem = new
             {
@@ -280,39 +297,47 @@ namespace <%= this.AssemblyName %>.Controllers
        
        
        // 删除 统一调用 
-       //todo:逻辑删除 字段未指定，需要手动调整      
-       public JsonResult <%= GetTableClassName(SourceTable) %>BatchDelete(int[] idList){
-            if(idList==null||idList.Length<1){
-                return Json(new { Success = false, Msg = "请先选择要删除的数据" }, JsonRequestBehavior.AllowGet);
+       //todo:逻辑删除 字段未指定，需要手动调整
+        [HttpPost]
+       public async Task<OperationResult> <%= GetTableClassName(SourceTable) %>BatchDelete(List<long> idList){
+           var resultData = new OperationResult()
+            {
+                StatusCode = OperationResultStatus.Error,
+                Message = "获取数据失败!"
+            };
+            if (idList == null || idList.Count < 1)
+            {
+                return resultData;
             }
             
                 //直接删除
-                //<%= GetTableClassName(SourceTable) %>Service.Delete(Restrictions.In(<%= GetTableClassName(SourceTable) %>.ColumnNames.Id, idList));
+                //await <%= GetTableClassName(SourceTable) %>Service.Delete(d=>idList.Contains(d.Id));
                //逻辑删除
-
-               //IList<<%= GetTableClassName(SourceTable) %>> batchList= <%= GetTableClassName(SourceTable) %>Service.GetList(Restrictions.In(<%= GetTableClassName(SourceTable) %>.ColumnNames.Id, idList));
+               //IList<<%= GetTableClassName(SourceTable) %>> batchList=await <%= GetTableClassName(SourceTable) %>Service.GetList(d => idList.Contains(d.Id));
                 //逻辑删除字段 修改
                // foreach (var item in batchList)
                // {
-               //     item.IsDelete = true;
+               //     item.IsDeleted = true;
                //}
-               //<%= GetTableClassName(SourceTable) %>Service.Update(batchList);
+               //await <%= GetTableClassName(SourceTable) %>Service.Update(batchList);
                 
             <%if(isDelete){ %>
                 //直接删除
-                <%= GetTableClassName(SourceTable) %>Service.Delete(Restrictions.In(<%= GetTableClassName(SourceTable) %>.ColumnNames.Id, idList));
+               await <%= GetTableClassName(SourceTable) %>Service.Delete(d=>idList.Contains(d.Id));
             <%} else { %>
                 //逻辑删除
-               IList<<%= GetTableClassName(SourceTable) %>> batchList= <%= GetTableClassName(SourceTable) %>Service.GetList(Restrictions.In(<%= GetTableClassName(SourceTable) %>.ColumnNames.Id, idList));
+               IList<<%= GetTableClassName(SourceTable) %>> batchList=await <%= GetTableClassName(SourceTable) %>Service.GetList(d => idList.Contains(d.Id));
                 //逻辑删除字段 修改
                 foreach (var item in batchList)
                 {
-                    item.IsDelete = true;
+                    item.IsDeleted = true;
                 }
                 
-                <%= GetTableClassName(SourceTable) %>Service.Update(batchList);
+               await <%= GetTableClassName(SourceTable) %>Service.Update(batchList);
             <%} %>
-         return Json(new { Success = true, Msg = "删除成功" }, JsonRequestBehavior.AllowGet);
+            resultData.Message = "ok";
+            resultData.StatusCode = OperationResultStatus.Success;
+            return resultData;
        }
        
     }

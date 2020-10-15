@@ -19,7 +19,6 @@ Description: OracleService生成
 <%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
 using <%= this.EntitiesNamespace %>;
 using <%= this.FrameworkNamespace %>.Dao;
-using NHibernate;
 
 namespace <%= this.ServiceNamespace %>.Dialect
 {

@@ -48,7 +48,7 @@ Type="System.String"  Optional="False"  %>
 <%@ Import Namespace="CodeSmith.CustomProperties" %>
 
 <%@ Map Name="SystemCSharp" Src="System-CSharpAlias" %>
-
+<%@ Register Name="EntityFrameworkMapTemplate" Template="NetCoreCst\Mappings\EntityFrameworkMap.cst" %>
 
 <%@ Register Name="BusinessObjectTemplate" Template="NetCoreCst\Entities\BusinessObject.cst" %>
 <%@ Register Name="EditableBusinessObjectTemplate" Template="NetCoreCst\Entities\EditableBusinessObject.cst" %>
@@ -69,6 +69,8 @@ Type="System.String"  Optional="False"  %>
 <%@ Register Name="CsprojTemplate" Template="NetCoreCst\csproj.cst" %>
 <%@ Register Name="ModuleJsonTemplate" Template="NetCoreCst\Module.json.cst" %>
 <%@ Register Name="LaunchSettingsTemplate" Template="NetCoreCst\Properties\launchSettings.cst" %>
+<%@ Register Name="ControllerTemplate" Template="NetCoreCst\Manage_Quasar\Controller.cs.cst" %>
+
 
 <script runat="template">
 //数据库类型
@@ -109,9 +111,10 @@ public override void Render(TextWriter writer)
 	foreach(TableSchema table in ModuleTables)
 		if(!ExcludedTables.Contains(table))
 		{
+            RenderEntityFrameworkMaps(table);
 			RenderBusinessObjects(table);
             RenderService(table);
-            //RenderManage(table);
+            RenderManage(table);
 		}
 	RenderServicejson();
     RenderCsproj();
@@ -119,9 +122,34 @@ public override void Render(TextWriter writer)
     RenderManagePermissions();
     RenderModuleCs();
     Startup();
-    Alert(string.Format("代码生成完成,\n\n首次生成：请在解决方案'3.1内容模型'或'3.2模块扩展'添加现有项目文件'{0}.csproj'	\n\n不是首次生成：请将新增表对应的Domain，Mappings，Service文件包含到项目'{0}'中，	\n并将Mappings中后缀为'.hbm.xml'的文件'生成操作'设置为'嵌入的资源'。",this.AssemblyName));
+    Alert(string.Format("代码生成完成,\n\n首次生成：请在解决方案'3.1内容模型'或'3.2模块扩展'添加现有项目文件'{0}.csproj'	\n\n不是首次生成：请将新增表对应的Domain，Mappings，Service文件包含到项目'{0}'中，	\n并将Mappings中后缀为'Map.cs'的文件'生成操作设置主键映射关系'。",this.AssemblyName));
 }
-
+//页面文件生成
+private void RenderManage(TableSchema table)
+{
+    if(this.PageType.Equals(PageTypeEnum.Quasar)){
+       
+        #region Quasar Controller
+        
+        //1生成 Controller 和 Action
+       string listAspxCsFileName = String.Format("{0}{1}Controller.cs", GetFolder(@"Controllers"), GetTableClassName(table));
+       
+        //检测是否存在，存在的文件不再生成
+        if(!File.Exists(listAspxCsFileName))
+        {
+           ControllerTemplate ControllerTemplateObject = this.Create<ControllerTemplate>();
+           ControllerTemplateObject.ServiceNamespace = this.ServiceNamespace;
+           ControllerTemplateObject.IServiceNamespace = this.IServiceNamespace;
+           ControllerTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+           ControllerTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+           ControllerTemplateObject.AssemblyName=this.AssemblyName;
+           ControllerTemplateObject.SourceTable = table;
+                
+           ControllerTemplateObject.RenderToFile(GetOutputFile(listAspxCsFileName, null), true);
+        }
+        #endregion
+    }
+}
 //startup 开始cs文件
 private void Startup()
 {
@@ -176,9 +204,12 @@ private void RenderManagePermissions()
 //生成实体类
 private void RenderBusinessObjects(TableSchema table)
 {
-	string fileName = String.Format("{0}{1}.generated.cs", GetFolder(@"_generated\Domain"), GetTableClassName(table));
+	string fileName = String.Format("{0}{1}.cs", GetFolder(@"_generated\Domain"), GetTableClassName(table));
 	string editableFileName = String.Format("{0}{1}.cs", GetFolder(@"Domain"), GetTableClassName(table));
-	
+	//检测配置文件已存在，主文件存在不再生成
+    //if(File.Exists(fileName)){
+    //    return;
+    //}
     //检测是否存在，存在的文件不再生成
 	if(!File.Exists(editableFileName))
 	{
@@ -198,6 +229,23 @@ private void RenderBusinessObjects(TableSchema table)
 
 	businessObject.RenderToFile(GetOutputFile(fileName, editableFileName), true);
 }
+private void RenderEntityFrameworkMaps(TableSchema table)
+{
+	string fileName = String.Format("{0}{1}Map.cs", GetFolder(@"_generated\Mapping"), GetTableClassName(table));
+	//检测配置文件已存在，主文件存在不再生成
+    if(File.Exists(fileName)){
+        return;
+    }
+	EntityFrameworkMapTemplate efmMap = this.Create<EntityFrameworkMapTemplate>();
+	efmMap.AssemblyName = this.AssemblyName;
+	efmMap.EntitiesNamespace = this.EntitiesNamespace;
+    //efmMap.BaseNamespace = this.BaseNamespace;
+	efmMap.SourceTable = table;
+	efmMap.ExcludedTables =this. ExcludedTables;
+	
+	efmMap.RenderToFile(GetOutputFile(fileName, null), true);
+}
+
 private void RenderCsproj(){
     //生成模块配置文件
     string moduleConfigFileName = String.Format("{0}Module.json", GetFolder(@""));

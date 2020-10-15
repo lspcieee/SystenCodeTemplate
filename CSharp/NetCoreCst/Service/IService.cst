@@ -23,7 +23,7 @@ using <%= this.FrameworkNamespace %>.Dao;
 namespace <%= this.IServiceNamespace %>
 {
     /// <summary>
-    /// <%= SourceTable.Description %>服务接口[基于NHibernate通用实现]
+    /// <%= SourceTable.Description %>服务接口[基于EntityFrameworkCore通用实现]
     /// </summary>
     public interface I<%= GetTableClassName(SourceTable) %>Service : IGenericDao<<%= GetTableClassName(SourceTable) %>>
     {

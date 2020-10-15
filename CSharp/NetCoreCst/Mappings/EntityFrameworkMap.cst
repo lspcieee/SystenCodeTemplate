@@ -1,0 +1,91 @@
+﻿<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" Inherits="CsNHibernateHelper" Src="../Helpers/CsNHibernateHelper.cs" TargetLanguage="xml" Debug="False" Description="Generates a Business Object for NHibernate." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
+<%@ Property Name="ExcludedTables" Type="SchemaExplorer.TableSchemaCollection" Optional="True" Category="1b. Database Options" Description="A collection of tables to be excluded during generation." %>
+<%@ Property Name="AssemblyName" Type="System.String" Default="NHibernate.Generated" Optional="False" Category="2a. Assembly" Description="The name of the Assembly that will contain the business objects." %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="NHibernate.Generated.BusinessObjects" Optional="False" Category="2b. Namespaces" Description="The desired Namespace for the Business Objects." %>
+<%@ Property Name="BaseNamespace" Type="System.String" Default="NHibernate.Generated.Base" Optional="False" Category="3b. Namespaces" Description="The Namespace where the Base classes (BusinessBase & ManagerBase) are located." %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="NHibernateHelper" %>
+<%EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables); %>
+
+using Systen.Framework.Mapping;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using <%= EntitiesNamespace %>;
+
+namespace <%= AssemblyName %>.Mapping
+{
+    //https://docs.microsoft.com/zh-cn/ef/core/modeling/relationships?tabs=fluent-api%2Cfluent-api-simple-key%2Csimple-key
+
+    public class <%= GetTableClassName(SourceTable) %>Map : BaseEntityTypeConfiguration<<%= GetTableClassName(SourceTable) %>>
+    {
+        //fluent API 配置模型 数据注释会替代约定，但会被 Fluent API 配置替代
+        public override void Configure(EntityTypeBuilder<<%= GetTableClassName(SourceTable) %>> builder)
+        {
+            builder.HasKey(t => t.Id);
+        }
+
+        //ToTable（tableName）   配置表名称
+        //HasNoKey()    无实体主键   [Keyless]实体特性方案
+        //Property(b => b.BlogId).HasColumnName("blog_id")  列名映射
+        //Property(b => b.Url).HasColumnType("varchar(200)") 数据类型映射
+        //Property(b => b.Url).IsRequired();   必填 [Required]
+
+        //HasKey(c => c.LicensePlate);   主键
+        //HasKey(c => new { c.State, c.LicensePlate })  组合键只能由api实现
+        //HasKey(b => b.BlogId).HasName("PrimaryKey_BlogId")  主键名称
+        //HasAlternateKey(c => c.LicensePlate)  备用键
+        //Property(b => b.Id).ValueGeneratedOnAdd()  添加时生成的值 [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+
+        //Property(b => b.Id).HasDefaultValue(3)  默认值
+        //Property(b => b.Created).HasDefaultValueSql("getdate()");  默认计算值
+        //Property(p => p.DisplayName).HasComputedColumnSql("[LastName] + ', ' + [FirstName]"); 计算列
+        //Property(b => b.BlogId).ValueGeneratedNever()  无值生成[DatabaseGenerated(DatabaseGeneratedOption.None)]
+
+    }
+}
+<script runat="template">
+    //延迟加载
+    public string GetPropertyLazy(EntityMember em)
+    {
+        bool lazy=false;
+        ColumnSchema column=em.Column;               
+
+        //数据库字段中包含[lazy]的字段延迟加载
+        lazy=column.Description.Contains("[lazy]");
+
+        
+        //根据字段类型判断
+        if(lazy==false){
+            lazy=(column.NativeType== "ntext");
+        }
+		
+		if(column.Description.Contains("[noLazy]")){
+			lazy=false;
+		}
+		
+        if(lazy){
+            return @"lazy=""true""";
+        }
+        else
+        {
+            return String.Empty;
+        }
+    }
+    
+    //设置类型
+    public string GetPropertyType(EntityMember em)
+    {
+	    ColumnSchema column=em.Column;      
+        if((column.NativeType== "ntext")){
+            return @" type=""StringClob""";
+        }
+        else
+        {
+            return String.Empty;
+        }
+    }
+</script>

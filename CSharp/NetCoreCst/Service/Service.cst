@@ -24,7 +24,7 @@ using <%= this.FrameworkNamespace %>.Dao;
 namespace <%= this.ServiceNamespace %>
 {
     /// <summary>
-    /// <%= SourceTable.Description %>服务[基于NHibernate通用实现]
+    /// <%= SourceTable.Description %>服务[基于EntityFrameworkCore通用实现]
     /// </summary>
     public abstract class <%= GetTableClassName(SourceTable) %>Service : GenericDao<<%= GetTableClassName(SourceTable) %>>, I<%= GetTableClassName(SourceTable) %>Service
     {
