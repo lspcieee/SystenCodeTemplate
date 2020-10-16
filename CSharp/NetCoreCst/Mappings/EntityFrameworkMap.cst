@@ -11,7 +11,7 @@
 <%@ Import Namespace="System.Data" %>
 <%@ Import Namespace="NHibernateHelper" %>
 <%EntityManager entityManager = new EntityManager(SourceTable, ExcludedTables); %>
-
+using Microsoft.EntityFrameworkCore;
 using Systen.Framework.Mapping;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using <%= EntitiesNamespace %>;
@@ -25,7 +25,16 @@ namespace <%= AssemblyName %>.Mapping
         //fluent API 配置模型 数据注释会替代约定，但会被 Fluent API 配置替代
         public override void Configure(EntityTypeBuilder<<%= GetTableClassName(SourceTable) %>> builder)
         {
-            builder.HasKey(t => t.Id);
+            //表名
+            builder.ToTable(<%= GetTableClassName(SourceTable) %>.TableName);
+
+            //设置主键
+            builder
+                .HasKey(t => t.Id)
+                .HasName("Id");
+
+            //添加时自动生成
+            builder.Property(dt => dt.Id).ValueGeneratedOnAdd();
         }
 
         //ToTable（tableName）   配置表名称

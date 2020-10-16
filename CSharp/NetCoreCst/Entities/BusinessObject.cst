@@ -29,7 +29,6 @@ namespace <%= EntitiesNamespace %>
     /// <summary>
     /// <%= ClearNote(SourceTable.Description) %>
     /// </summary>
-    [Table("<%= SourceTable.Name %>")]
     public partial class <%= GetTableClassName(SourceTable) %>  : EntityBase
     {
              
@@ -43,8 +42,8 @@ namespace <%= EntitiesNamespace %>
         /// <summary>
         /// <%= em.Column.Description %>
         /// </summary>
-        [Key,Column("<%= em.PropertyName %>")]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        //[Key,Column("<%= em.PropertyName %>")]
+        //[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public virtual <%= em.SystemType %> <%= em.PropertyName %> { get; set; }
 		<% } %>
         
@@ -65,5 +64,12 @@ namespace <%= EntitiesNamespace %>
         public virtual <%= ea.Column.SystemType %> <%= ea.Column.Name %> { get; set; }
 		<% } %>
         
+         #region 数据库元属性
+        /// <summary>
+        /// 数据库表名
+        /// </summary>
+        [NotMapped]
+        public static readonly string TableName = "<%= SourceTable.Name %>";
+        #endregion
     }
 }

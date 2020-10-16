@@ -22,6 +22,8 @@ namespace <%= EntitiesNamespace %>
     /// </summary>
     public partial class <%= GetTableClassName(SourceTable) %>
     {
-        
+        //扩展属性需要添加特性 [NotMapped] 不包含ef实体属性名称
+        //[NotMapped]
+        //public virtual  string TempName { get; set; }
     }
 }

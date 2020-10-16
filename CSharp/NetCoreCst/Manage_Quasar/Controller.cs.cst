@@ -65,7 +65,8 @@ namespace <%= this.AssemblyName %>.Controllers
            
             
         //加载列表
-        public async Task<OperationResult> <%=GetTableClassName(SourceTable)%>List(int pageSize = 20, int pageNumber = 1, int pageCount=0 <%=listParameter%>){
+        [HttpGet]
+        public async Task<OperationResult> <%=GetTableClassName(SourceTable)%>List(int pageSize = 20, int pageNumber = 1 <%=listParameter%>){
             var resultData = new OperationResult()
             {
                 StatusCode = OperationResultStatus.Error,
@@ -82,7 +83,7 @@ namespace <%= this.AssemblyName %>.Controllers
                 %>
 
             //<%=GetDescription(em) %>
-            if (!string.IsNullOrEmpty(<%= ToProperCase(em.PropertyName) %>.Trim()))
+            if (!string.IsNullOrEmpty(<%= ToProperCase(em.PropertyName) %>))
             {
                  queryable = queryable.Where(dt => dt.<%= em.PropertyName %> == <%= ToProperCase(em.PropertyName) %>.Trim());
             }
