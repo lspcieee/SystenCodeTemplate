@@ -11,12 +11,12 @@ Description: 生成CMS模块入口
 <%@ Property Name="TablePrefix" Type="System.String" Default=""  Optional="False" Category="1. 数据库设置" Description="生成实体时,需要去除的表前缀.（下划线前边的一部分，不包括下划线）" %>
 <%@ Property Name="VersionColumn" Type="System.String" Default="^((R|r)ow)?(V|v)ersion$" Optional="True" Category="1. 数据库设置" Description="获取version字段名称的正则表达式" %>
 
-<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="2. 程序集" Description="模块程序集名称" %>
+<%@ Property Name="AssemblyName" Type="System.String" Default="Systen.CMS.Modules.XX" Optional="False" Category="2. 程序集" Description="模块程序集名称" %>
 
-<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3. 命名空间" Description="Framework命名空间" %>
-<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3. 命名空间" Description="IService命名空间" %>
-<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3. 命名空间" Description="Service命名空间" %>
-<%@ Property Name="EntitiesNamespace" Type="System.String"  Default="KDSoft.KDCMS.Modules.XX.Domain" Optional="False" Category="3. 命名空间" Description="实体命名空间" %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="Systen.CMS.Framework" Optional="False" Category="3. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="Systen.CMS.Modules.XX.IService" Optional="False" Category="3. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="Systen.CMS.Modules.XX.Service" Optional="False" Category="3. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String"  Default="Systen.CMS.Modules.XX.Domain" Optional="False" Category="3. 命名空间" Description="实体命名空间" %>
 <%@ Property Name="DatabaseType" Type="DatabaseTypeEnum" Default="SqlServer" Category="4. 方言适配数据库类型" Description="生成castle配置时使用的方言数据库类型" %>
 
 

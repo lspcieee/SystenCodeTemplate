@@ -11,12 +11,12 @@ Description: 生成CMS模块入口
 <%@ Property Name="TablePrefix" Type="System.String" Default=""  Optional="False" Category="1. 数据库设置" Description="生成实体时,需要去除的表前缀.（下划线前边的一部分，不包括下划线）" %>
 <%@ Property Name="VersionColumn" Type="System.String" Default="^((R|r)ow)?(V|v)ersion$" Optional="True" Category="1. 数据库设置" Description="获取version字段名称的正则表达式" %>
 
-<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="2. 程序集" Description="模块程序集名称" %>
+<%@ Property Name="AssemblyName" Type="System.String" Default="Systen.CMS.Modules.XX" Optional="False" Category="2. 程序集" Description="模块程序集名称" %>
 
-<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3. 命名空间" Description="Framework命名空间" %>
-<%@ Property Name="IServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.IService" Optional="False" Category="3. 命名空间" Description="IService命名空间" %>
-<%@ Property Name="ServiceNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Service" Optional="False" Category="3. 命名空间" Description="Service命名空间" %>
-<%@ Property Name="EntitiesNamespace" Type="System.String"  Default="KDSoft.KDCMS.Modules.XX.Domain" Optional="False" Category="3. 命名空间" Description="实体命名空间" %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="Systen.CMS.Framework" Optional="False" Category="3. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="IServiceNamespace" Type="System.String" Default="Systen.CMS.Modules.XX.IService" Optional="False" Category="3. 命名空间" Description="IService命名空间" %>
+<%@ Property Name="ServiceNamespace" Type="System.String" Default="Systen.CMS.Modules.XX.Service" Optional="False" Category="3. 命名空间" Description="Service命名空间" %>
+<%@ Property Name="EntitiesNamespace" Type="System.String"  Default="Systen.CMS.Modules.XX.Domain" Optional="False" Category="3. 命名空间" Description="实体命名空间" %>
 <%@ Property Name="DatabaseType" Type="DatabaseTypeEnum" Default="SqlServer" Category="4. 方言适配数据库类型" Description="生成castle配置时使用的方言数据库类型" %>
 
 
@@ -63,6 +63,7 @@ Type="System.String"  Optional="False"  %>
 <%@ Register Name="SqliteServerServiceTemplate" Template="NetCoreCst\Service\Dialect\SqliteServerService.cst" %>
 
 <%@ Register Name="StartupTemplate" Template="NetCoreCst\Startup.cst" %>
+<%@ Register Name="ProgramTemplate" Template="NetCoreCst\Program.cst" %>
 
 <%@ Register Name="ModuleCsTemplate" Template="NetCoreCst\Module.Cs.cst" %>
 <%@ Register Name="ManagePermissionsTemplate" Template="NetCoreCst\ManagePermissions.cst" %>
@@ -122,6 +123,7 @@ public override void Render(TextWriter writer)
     RenderManagePermissions();
     RenderModuleCs();
     Startup();
+    Program();
     Alert(string.Format("代码生成完成,\n\n首次生成：请在解决方案'3.1内容模型'或'3.2模块扩展'添加现有项目文件'{0}.csproj'	\n\n不是首次生成：请将新增表对应的Domain，Mappings，Service文件包含到项目'{0}'中，	\n并将Mappings中后缀为'Map.cs'的文件'生成操作设置主键映射关系'。",this.AssemblyName));
 }
 //页面文件生成
@@ -155,8 +157,21 @@ private void Startup()
 {
        string webConfigFileName =  "Startup.cs";
      if(!File.Exists(webConfigFileName)){
-      StartupTemplate csprojTemplateObject = this.Create<StartupTemplate>(); 
-      csprojTemplateObject.RenderToFile(GetOutputFile(webConfigFileName, null), true); 
+          StartupTemplate csprojTemplateObject = this.Create<StartupTemplate>(); 
+          csprojTemplateObject.AssemblyName=this.AssemblyName;
+          csprojTemplateObject.RenderToFile(GetOutputFile(webConfigFileName, null), true); 
+     }
+     
+}
+
+//Program 开始cs文件
+private void Program()
+{
+       string webConfigFileName =  "Program.cs";
+     if(!File.Exists(webConfigFileName)){
+        ProgramTemplate csprojTemplateObject = this.Create<ProgramTemplate>(); 
+        csprojTemplateObject.AssemblyName=this.AssemblyName;
+        csprojTemplateObject.RenderToFile(GetOutputFile(webConfigFileName, null), true); 
      }
      
 }
@@ -284,7 +299,7 @@ private void RenderCsproj(){
             csprojTemplateObject.ModuleTables = this.ModuleTables;
             csprojTemplateObject.RenderToFile(GetOutputFile(csprojFileName, null), true);
             
-            string assemblyInfoFileName = String.Format("{0}launchSettings.cs", GetFolder(@"Properties"));
+            string assemblyInfoFileName = String.Format("{0}launchSettings.json", GetFolder(@"Properties"));
             LaunchSettingsTemplate assemblyInfoTemplateObject = this.Create<LaunchSettingsTemplate>();
             assemblyInfoTemplateObject.AssemblyName=this.AssemblyName;
             assemblyInfoTemplateObject.ServiceNamespace = this.ServiceNamespace;

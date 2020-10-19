@@ -4,14 +4,14 @@ Author: wuw
 Description: 项目文件生成（vs2010 sp1,c#4.5）
 --%>
 
-<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3b. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="AssemblyName" Type="System.String" Default="Systen.CMS.Modules.XX" Optional="False" Category="2a. Assembly" Description="The name of the Assembly that will contain the business objects." %>
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace <%= FrameworkNamespace %>
+namespace <%=this.AssemblyName %>
 {
     public class Startup
     {

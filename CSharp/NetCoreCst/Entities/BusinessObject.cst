@@ -5,9 +5,9 @@ Description: 生成业务对象
 --%>
 <%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" Inherits="CsNHibernateHelper" Src="../Helpers/CsNHibernateHelper.cs" TargetLanguage="C#" Debug="False" Description="Generates a Business Object for NHibernate." %>
 <%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Optional="False" Category="1a. Source Table" Description="The source table to generate from." %>
-<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="2. Namespaces" Description="Framework命名空间" %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="Systen.CMS.Framework" Optional="False" Category="2. Namespaces" Description="Framework命名空间" %>
 <%@ Property Name="ExcludedTables" Type="SchemaExplorer.TableSchemaCollection" Optional="True" Category="1b. Database Options" Description="A collection of tables to be excluded during generation." %>
-<%@ Property Name="EntitiesNamespace" Type="System.String" Default="KDSoft.KDCMS.Modules.XX.Entities" Optional="False" Category="2. Namespaces" Description="The desired Namespace for the Business Objects." %>
+<%@ Property Name="EntitiesNamespace" Type="System.String" Default="Systen.CMS.Modules.XX.Entities" Optional="False" Category="2. Namespaces" Description="The desired Namespace for the Business Objects." %>
 <%@ Assembly Name="SchemaExplorer" %>
 <%@ Assembly Name="System.Data" %>
 <%@ Assembly Name="NHibernateHelper" Path="..\..\..\Common\NHibernateHelper" %>

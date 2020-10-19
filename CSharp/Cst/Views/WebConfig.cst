@@ -4,8 +4,8 @@ Author: wuw
 Description: 项目文件生成（vs2010 sp1,c#4.5）
 --%>
 <%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" Inherits="CsNHibernateHelper" Src="../Helpers/CsNHibernateHelper.cs" TargetLanguage="xml" Debug="False" Description="Generates a Business Object for NHibernate." %>
-<%@ Property Name="AssemblyName" Type="System.String" Default="KDSoft.KDCMS.Modules.XX" Optional="False" Category="2. 程序集" Description="模块程序集名称" %>
-<%@ Property Name="FrameworkNamespace" Type="System.String" Default="KDSoft.KDCMS.Framework" Optional="False" Category="3. 命名空间" Description="Framework命名空间" %>
+<%@ Property Name="AssemblyName" Type="System.String" Default="Systen.CMS.Modules.XX" Optional="False" Category="2. 程序集" Description="模块程序集名称" %>
+<%@ Property Name="FrameworkNamespace" Type="System.String" Default="Systen.CMS.Framework" Optional="False" Category="3. 命名空间" Description="Framework命名空间" %>
 <?xml version="1.0"?>
 
 <configuration>
