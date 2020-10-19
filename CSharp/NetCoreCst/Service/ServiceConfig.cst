@@ -11,6 +11,8 @@ Description: 服务映射配置文件
 <%@ Property Name="ServiceNamespace" Type="System.String" Default="Systen.CMS.Modules.XX.Service" Optional="False" Category="3b. 命名空间" Description="Service命名空间" %>
 <%@ Property Name="EntitiesNamespace" Type="System.String" Default="Systen.CMS.Modules.XX.Entities" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
 <%@ Property Name="DatabaseType" Type="System.String" Optional="False" Category="3b. 命名空间" Description="实体命名空间" %>
+<%@ Property Name="ModuleClassName" Default="CoreModule" Category="5. 模块配置" Description="模块接口实现类名称" 
+Type="System.String"  Optional="False"  %>
 
 <%@ Assembly Name="SchemaExplorer" %>
 <%@ Assembly Name="System.Data" %>
@@ -22,6 +24,17 @@ Description: 服务映射配置文件
 {
   "defaultAssembly": "<%=this.AssemblyName%>",
   "components": [
+    {
+      "type": "<%=this.AssemblyName%>.<%=this.ModuleClassName%>",
+      "services": [
+        {
+          "type": "Systen.Framework.Module.ModuleBase,Systen.Framework"
+        }
+      ],
+      "instanceScope": "single-instance", //单例生命周期
+      "injectProperties": true //属性自动装配
+    },
+  
     <%
     foreach(TableSchema table in ModuleTables)
     {

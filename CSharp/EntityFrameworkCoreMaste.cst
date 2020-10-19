@@ -327,6 +327,7 @@ private void RenderServicejson()
     serviceConfigTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
     serviceConfigTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
     serviceConfigTemplateObject.ModuleTables = this.ModuleTables;
+    serviceConfigTemplateObject.ModuleClassName=this.ModuleClassName;
     serviceConfigTemplateObject.DatabaseType=this.DatabaseType.ToString();
     serviceConfigTemplateObject.RenderToFile(GetOutputFile(serviceConfigFileName, null), true);
 }
