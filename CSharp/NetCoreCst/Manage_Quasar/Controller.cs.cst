@@ -142,7 +142,7 @@ namespace <%= this.AssemblyName %>.Controllers
        }
        //添加
        [HttpGet]
-       public async Task<OperationResult> GetDefaultInstance(){
+       public OperationResult GetDefaultInstance(){
             var resultData = new OperationResult()
             {
                 StatusCode = OperationResultStatus.Error,

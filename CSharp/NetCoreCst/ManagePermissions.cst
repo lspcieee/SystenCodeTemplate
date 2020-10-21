@@ -68,6 +68,7 @@ namespace <%=this.AssemblyName %>
                 //批量删除
                 [Operation(Name = "批量删除", Key = "<%=tableName%>/BatchDelete")]
                 public struct BatchDelete { }
+			   <%} %>
             }
             <%}}%> 
 
