@@ -292,12 +292,13 @@ namespace <%= this.AssemblyName %>.Controllers
                 
                await <%= GetTableClassName(SourceTable) %>Service.Update(batchList);
             <%} %>
-            resultData.Message = "操作成功已删除";
+            resultData.Message = "操作成功，已删除";
             resultData.StatusCode = OperationResultStatus.Success;
             return resultData;
        }
        
-       // 统一验证
+        #region 扩展函数
+         // 统一验证
         private string Validate(<%= GetTableClassName(SourceTable) %> editItem){
              <% foreach(EntityMember em in entityManagerList){ 
                   if(!em.Column.AllowDBNull && em.Column.SystemType != typeof(System.Boolean)){%>
@@ -309,7 +310,6 @@ namespace <%= this.AssemblyName %>.Controllers
               } %>
              return "";
         }
-        #region 扩展函数
        //统一返回
        private dynamic GetViewDataItem(<%= GetTableClassName(SourceTable) %> editItem)
         {
