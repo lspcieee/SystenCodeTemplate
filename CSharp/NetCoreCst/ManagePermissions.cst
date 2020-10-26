@@ -40,7 +40,7 @@ namespace <%=this.AssemblyName %>
                 if(!table.Description.Contains("[noList]")){
             %>           
             //<%=table.Description %>  
-            [ManageMenu(Name = "<%=table.Description %>", Key = "<%=tableName%>/<%=tableName%>List", Link = "<%=tableName%>/<%=tableName%>List")]
+            [ManageMenu(Name = "<%=table.Description %>", Key = "#<%=tableName%>/<%=tableName%>List", Link = "#<%=tableName%>/<%=tableName%>List")]
             public struct <%=tableName%>List
             {
             <%if(!table.Description.Contains("[noAdd]")){ %>
