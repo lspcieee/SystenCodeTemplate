@@ -30,7 +30,7 @@ namespace <%=this.AssemblyName %>
         /// <summary>
         /// <%= ModuleName%>左侧菜单
         /// </summary>
-        [ManageMenu(Name = "<%= ModuleName%>管理", Key = "manage/<%=GetLastAssemblyName()%>ManageMenu", Link = "",Icon ="")]
+        [Application(Name = "<%= ModuleName%>", Key = "<%=this.AssemblyName %>", URL = "",Icon ="")]
         public struct <%=GetLastAssemblyName()%>ManageMenu
         {      
             <%
@@ -40,7 +40,7 @@ namespace <%=this.AssemblyName %>
                 if(!table.Description.Contains("[noList]")){
             %>           
             //<%=table.Description %>  
-            [ManageMenu(Name = "<%=table.Description %>", Key = "#<%=tableName%>/<%=tableName%>List", Link = "#<%=tableName%>/<%=tableName%>List")]
+            [ManageMenu(Name = "<%=table.Description %>", Key = "#<%=tableName%>/<%=tableName%>List", URL = "#<%=tableName%>/<%=tableName%>List", Icon = "line-font line-profilemale")]
             public struct <%=tableName%>List
             {
             <%if(!table.Description.Contains("[noAdd]")){ %>

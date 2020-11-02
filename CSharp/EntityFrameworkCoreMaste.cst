@@ -72,6 +72,8 @@ Type="System.String"  Optional="False"  %>
 <%@ Register Name="LaunchSettingsTemplate" Template="NetCoreCst\Properties\launchSettings.cst" %>
 <%@ Register Name="ControllerTemplate" Template="NetCoreCst\Manage_Quasar\Controller.cs.cst" %>
 
+<%@ Register Name="QuasarListCshtmlTemplate" Template="NetCoreCst\Manage_Quasar\list.cshtml.cst" %>
+<%@ Register Name="QuasarEditCshtmlTemplate" Template="NetCoreCst\Manage_Quasar\Edit.cshtml.cst" %>
 
 <script runat="template">
 //数据库类型
@@ -148,6 +150,44 @@ private void RenderManage(TableSchema table)
            ControllerTemplateObject.SourceTable = table;
                 
            ControllerTemplateObject.RenderToFile(GetOutputFile(listAspxCsFileName, null), true);
+        }
+         //2生成视图
+        string viewPath=GetFolder(@"Views\"+GetTableClassName(table)+"");
+        if(!table.Description.Contains("[noList]")){
+            //列表 View
+            string listAspxFileName = String.Format("{0}{1}List.vue", viewPath,GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(listAspxFileName))
+            {
+                QuasarListCshtmlTemplate quasarlistCshtmlTemplateObject = this.Create<QuasarListCshtmlTemplate>();
+                quasarlistCshtmlTemplateObject.ServiceNamespace = this.ServiceNamespace;
+                quasarlistCshtmlTemplateObject.IServiceNamespace = this.IServiceNamespace;
+                quasarlistCshtmlTemplateObject.FrameworkNamespace = this.FrameworkNamespace;
+                quasarlistCshtmlTemplateObject.EntitiesNamespace = this.EntitiesNamespace;
+                quasarlistCshtmlTemplateObject.SourceTable = table;
+                quasarlistCshtmlTemplateObject.AssemblyName=this.AssemblyName;
+                   
+                quasarlistCshtmlTemplateObject.RenderToFile(GetOutputFile(listAspxFileName, null), true);
+            }
+        }
+        if(!table.Description.Contains("[noEdit]")){
+            //编辑 View
+            string editAspxFileName = String.Format("{0}{1}Edit.vue", viewPath,GetTableClassName(table));
+            //检测是否存在，存在的文件不再生成
+            if(!File.Exists(editAspxFileName))
+            {
+                QuasarEditCshtmlTemplate quasarEditCshtmlTemplate = this.Create<QuasarEditCshtmlTemplate>();
+                quasarEditCshtmlTemplate.ServiceNamespace = this.ServiceNamespace;
+                quasarEditCshtmlTemplate.IServiceNamespace = this.IServiceNamespace;
+                quasarEditCshtmlTemplate.FrameworkNamespace = this.FrameworkNamespace;
+                quasarEditCshtmlTemplate.EntitiesNamespace = this.EntitiesNamespace;
+                quasarEditCshtmlTemplate.AssemblyName=this.AssemblyName;
+                   
+                quasarEditCshtmlTemplate.SourceTable = table;
+                    
+                quasarEditCshtmlTemplate.RenderToFile(GetOutputFile(editAspxFileName, null), true);
+            }
+            
         }
         #endregion
     }

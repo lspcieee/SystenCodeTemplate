@@ -34,7 +34,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
         primaryKeyName= entityManager.PrimaryKey.KeyColumn.PropertyName;
 	} 
     
-   bool isDelete=entityManager.MembersNoKeyNoVersion.SingleOrDefault(m=>m.PropertyName=="IsDeleted")==null;
+   bool isDelete=entityManager.MembersNoKeyNoVersion.SingleOrDefault(m=>m.PropertyName=="IsDelete")==null;
 %>
 using System.Collections.Generic;
 using System.Linq;
@@ -67,7 +67,7 @@ namespace <%= this.AssemblyName %>.Controllers
             
         //加载列表
         [HttpGet]
-        public async Task<OperationResult> GetList(int pageSize = 20, int pageNumber = 1 <%=listParameter%>){
+        public OperationResult GetList(int pageSize = 20, int pageNumber = 1 <%=listParameter%>){
             var resultData = new OperationResult()
             {
                 StatusCode = OperationResultStatus.Error,
@@ -75,8 +75,8 @@ namespace <%= this.AssemblyName %>.Controllers
             };
 			IQueryable<<%=GetTableClassName(SourceTable)%>> queryable = <%=GetTableClassName(SourceTable)%>Service.Table;
             //todo:逻辑删除过滤  可以直接删除
-            <%if(isDelete){ %>
-            queryable = queryable.Where(dt => !dt.IsDeleted);
+            <%if(!isDelete){ %>
+            queryable = queryable.Where(dt => !dt.IsDelete);
              <%} %>
             <%-- 根据数据库中的标记生成对应要搜索的字段--%>
             <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
@@ -98,7 +98,7 @@ namespace <%= this.AssemblyName %>.Controllers
             //    OrderBy(IQueryable<Manager> order)
             //    => order.OrderByDescending(manager => manager.OrderNumber);
             
-			IPageList<<%= GetTableClassName(SourceTable) %>> pageList =await <%= GetTableClassName(SourceTable) %>Service.GetPageList(queryable, null, null, pageNumber, pageSize);
+			IPageList<<%= GetTableClassName(SourceTable) %>> pageList =<%= GetTableClassName(SourceTable) %>Service.GetPageList(queryable, null, null, pageNumber, pageSize);
             
             IList<dynamic> dataList = pageList.Items.Select(
                 dataItem =>
@@ -109,15 +109,19 @@ namespace <%= this.AssemblyName %>.Controllers
                     if(!DescriptionContains(em,"[hide]")){%>
                 //<%=GetDescription(em) %>
                         <%if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
-                <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>.HasValue? (dataItem.<%=em.PropertyName%>.Value?"是":"否"):string.Empty,
+                        <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>,
+                <%=em.PropertyName%>Str = dataItem.<%=em.PropertyName%>.HasValue? (dataItem.<%=em.PropertyName%>.Value?"是":"否"):string.Empty,
                         <%}else if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
-                <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>.HasValue? dataItem.<%=em.PropertyName%>.Value.ToString("yyyy-MM-dd"):string.Empty,
+                        <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>,
+                <%=em.PropertyName%>Str = dataItem.<%=em.PropertyName%>.HasValue? dataItem.<%=em.PropertyName%>.Value.ToString("yyyy-MM-dd"):string.Empty,
                         <%}else if(em.SystemType.Contains("?")){%>
                 <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>.HasValue? dataItem.<%=em.PropertyName%>.Value.ToString():string.Empty,
                         <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
-                <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>?"是":"否",
+                         <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>,
+                <%=em.PropertyName%>Str = dataItem.<%=em.PropertyName%>?"是":"否",
                         <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
-                <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>.ToString("yyyy-MM-dd HH:mm"),
+                         <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>,
+                <%=em.PropertyName%>Str = dataItem.<%=em.PropertyName%>.ToString("yyyy-MM-dd HH:mm"),
                         <% }
                         else{%>
                 <%=em.PropertyName%>=dataItem.<%=em.PropertyName%>,
@@ -163,7 +167,7 @@ namespace <%= this.AssemblyName %>.Controllers
        //添加保存
        [HttpPost]
 	    [PermissionKey("GetDefaultInstance")]
-       public async Task<OperationResult> Insert(<%= GetTableClassName(SourceTable) %>  editItem){
+       public OperationResult Insert(<%= GetTableClassName(SourceTable) %>  editItem){
             var resultData = new OperationResult()
             {
                 StatusCode = OperationResultStatus.Error,
@@ -175,7 +179,7 @@ namespace <%= this.AssemblyName %>.Controllers
             {
                 return resultData;
             }                        
-            await <%= GetTableClassName(SourceTable) %>Service.Add(editItem);            
+            <%= GetTableClassName(SourceTable) %>Service.Add(editItem);            
              resultData.Result = new
             {
                 <%= GetTableClassName(SourceTable) %> = GetViewDataItem(editItem),
@@ -188,13 +192,13 @@ namespace <%= this.AssemblyName %>.Controllers
        }
        //修改 View
        [HttpGet]
-       public async Task<OperationResult> Get(long id=0){
+       public OperationResult Get(long id=0){
             var resultData = new OperationResult()
             {
                 StatusCode = OperationResultStatus.Error,
                 Message = "未找到数据项!"
             };
-            <%= GetTableClassName(SourceTable) %> editItem =await <%= GetTableClassName(SourceTable) %>Service.Get(dt=>dt.Id==id);
+            <%= GetTableClassName(SourceTable) %> editItem =<%= GetTableClassName(SourceTable) %>Service.Get(dt=>dt.Id==id);
             //验证数据是否存在
            if (editItem == null || editItem.Id < 1)
             {
@@ -216,7 +220,7 @@ namespace <%= this.AssemblyName %>.Controllers
        //修改 保存
        [HttpPost]
 	    [PermissionKey("Get")]
-       public async Task<OperationResult> Update(<%= GetTableClassName(SourceTable) %>  editItem){
+       public OperationResult Update(<%= GetTableClassName(SourceTable) %>  editItem){
             var resultData = new OperationResult()
             {
                 StatusCode = OperationResultStatus.Error,
@@ -233,7 +237,7 @@ namespace <%= this.AssemblyName %>.Controllers
                return resultData;
             }  
             //验证值是否存在
-                <%= GetTableClassName(SourceTable) %>  editInfo=await <%= GetTableClassName(SourceTable) %>Service.Get(dt=>dt.Id==editItem.Id);            
+                <%= GetTableClassName(SourceTable) %>  editInfo=<%= GetTableClassName(SourceTable) %>Service.Get(dt=>dt.Id==editItem.Id);            
                 if (editInfo == null || editInfo.Id < 1)
                 {
                     return resultData;
@@ -242,7 +246,7 @@ namespace <%= this.AssemblyName %>.Controllers
                 editInfo.<%=em.PropertyName%>=editItem.<%=em.PropertyName%>;
                <%} %>
                
-             await  <%= GetTableClassName(SourceTable) %>Service.Update(editInfo);
+             <%= GetTableClassName(SourceTable) %>Service.Update(editInfo);
             
               resultData.Result = new
             {
@@ -256,7 +260,7 @@ namespace <%= this.AssemblyName %>.Controllers
         // 删除 统一调用 
        //todo:逻辑删除 字段未指定，需要手动调整
         [HttpPost]
-       public async Task<OperationResult> BatchDelete(List<long> idList){
+       public OperationResult BatchDelete(List<long> idList){
            var resultData = new OperationResult()
             {
                 StatusCode = OperationResultStatus.Error,
@@ -268,29 +272,29 @@ namespace <%= this.AssemblyName %>.Controllers
             }
             
                 //直接删除
-                //await <%= GetTableClassName(SourceTable) %>Service.Delete(d=>idList.Contains(d.Id));
+                //<%= GetTableClassName(SourceTable) %>Service.Delete(d=>idList.Contains(d.Id));
                //逻辑删除
-               //IList<<%= GetTableClassName(SourceTable) %>> batchList=await <%= GetTableClassName(SourceTable) %>Service.GetList(d => idList.Contains(d.Id));
+               //IList<<%= GetTableClassName(SourceTable) %>> batchList=<%= GetTableClassName(SourceTable) %>Service.GetList(d => idList.Contains(d.Id));
                 //逻辑删除字段 修改
                // foreach (var item in batchList)
                // {
                //     item.IsDeleted = true;
                //}
-               //await <%= GetTableClassName(SourceTable) %>Service.Update(batchList);
+               //<%= GetTableClassName(SourceTable) %>Service.Update(batchList);
                 
             <%if(isDelete){ %>
                 //直接删除
-               await <%= GetTableClassName(SourceTable) %>Service.Delete(d=>idList.Contains(d.Id));
+               <%= GetTableClassName(SourceTable) %>Service.Delete(d=>idList.Contains(d.Id));
             <%} else { %>
                 //逻辑删除
-               IList<<%= GetTableClassName(SourceTable) %>> batchList=await <%= GetTableClassName(SourceTable) %>Service.GetList(d => idList.Contains(d.Id));
+               IList<<%= GetTableClassName(SourceTable) %>> batchList=<%= GetTableClassName(SourceTable) %>Service.GetList(d => idList.Contains(d.Id));
                 //逻辑删除字段 修改
                 foreach (var item in batchList)
                 {
                     item.IsDeleted = true;
                 }
                 
-               await <%= GetTableClassName(SourceTable) %>Service.Update(batchList);
+               <%= GetTableClassName(SourceTable) %>Service.Update(batchList);
             <%} %>
             resultData.Message = "操作成功，已删除";
             resultData.StatusCode = OperationResultStatus.Success;

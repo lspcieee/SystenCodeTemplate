@@ -59,12 +59,12 @@ namespace <%=this.AssemblyName %>
             base.Stop();
         }
 
-        public override IList<MenuBase> GetManageMenuList()
+        public override IList<MenuBaseAttribute> GetManageMenuList()
         {
             return StructToManageMenuList(typeof(<%=GetLastAssemblyName(this.AssemblyName)%>ManagePermissions));
         }
 
-        public override IList<MenuBase> GetMemberMenuList()
+        public override IList<MenuBaseAttribute> GetMemberMenuList()
         {
             return null;
         }

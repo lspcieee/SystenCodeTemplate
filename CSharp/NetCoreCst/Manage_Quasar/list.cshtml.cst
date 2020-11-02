@@ -36,308 +36,353 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
 	} 
     //获取总数量
     int rowsCount=entityManagerList.Count;
-%> 
-@section Head{@RegisterHeaderFile("semantic", "common","knockout")}
- <!-- 内容部分-->
-@*如果要加左边模块 将代码取消注释*@
-    @*<div class="main-content">
-        <div class="list-box">*@
-        
-        <div class="breadcrumbs breadcrumbs-searchlist">
-            <div class="ui breadcrumb">
-                <i class="map signs icon"></i>
-                <a class="section nav-color"> <%= ClearNote(SourceTable.Description) %>管理</a>
-                <i class="right chevron icon divider"></i>
-                <a class="section nav-color nav-last"> <%= ClearNote(SourceTable.Description) %>列表</a>
-                    
-                <button class="ui skyblue button" data-bind="click:$root.onAddClick">
-                    <i class="plus out icon"></i>添加<%= ClearNote(SourceTable.Description) %>
-                </button>
-            </div>
+%>
+<template>
+  <div class="q-pa-md">
+    <q-toolbar class="breadcrumbs row items-start q-col-gutter-sm">
+      <q-breadcrumbs class="text-brown">
+        <template v-slot:separator>
+          <q-icon size="1.5em"
+                  name="chevron_right"
+                  color="primary" />
+        </template>
+        <q-breadcrumbs-el label="<%= ClearNote(SourceTable.Description) %>管理" icon="home" />
+        <q-breadcrumbs-el label="<%= ClearNote(SourceTable.Description) %>列表" />
+        <q-btn unelevated color="primary" icon="add" :disable="loading" label="添加<%= ClearNote(SourceTable.Description) %>" @click="onAddClick" />
+
+        <q-btn-group outline unelevated style="display:none;" v-show="showToolBbuttons">
+          <q-btn outline color="primary" icon="delete" label="删除" v-on:click="onItemDeleteClick" />
+        </q-btn-group>
+      </q-breadcrumbs>
+      <q-space />
+      <div class=" row">
+        <div class="col">
+         <% if(rowsCount>0) {%>
+          <!--搜索开始-->
+          <q-input dense
+                   outlined
+                   v-model="searchPara.<%= entityManagerList[0].PropertyName %>" label="<%=GetDescription(entityManagerList[0]) %>">
+            <template v-slot:append>
+              <q-btn round dense flat icon="search" v-on:click="getPageList" />
+            </template>
             
-            <div class="ui but-group buttons" style="display: none">
-                <a class="ui blue basic button" data-bind="click:$root.onItemDeleteClick">
-                    <i class="remove icon"></i>
-                    删除
-                </a>
-                <div class="ui blue basic pointing dropdown  button">
-                    更多
-                    <i class="dropdown icon"></i>
-                    <div class="menu">
-                        <a class="item" data-bind="click:$root.onItemDeleteClick">
-                            <i class="arrow circle up icon"></i>
-                            删除
-                        </a>
-                    </div>
-                </div>
-            </div>
-            @*如果要加左边模块 将代码取消注释*@
-            <% if(rowsCount>0) {%>
-            <div class="ui action input right-box">
-                <input type="text" data-bind="value:searchPara().<%= entityManagerList[0].PropertyName %>" placeholder="<%=GetDescription(entityManagerList[0]) %>" id="<%= entityManagerList[0].PropertyName %>" name="<%= entityManagerList[0].PropertyName %>" class="input_text"   />
-                <button class="ui skyblue button left-box" data-bind="click:$root.onSearchClick"><i class="icon search"></i>查询</button>
-            </div>
-            <%} %>
+            <template v-slot:after>
+              <q-btn round dense flat icon="more_horiz">
+                <q-menu anchor="bottom right" self="top right" :offset="[0, 10]">
+                  <q-card style="min-width: 500px">
+                    <q-item-label header>高级搜索</q-item-label>
+                    <q-card-section class="row q-col-gutter-md">
+                    <% foreach(EntityMember em in entityManagerList){%>
+                     <div class="col-6">
+                        <q-input dense
+                                 outlined
+                                 v-model="searchPara.<%= em.PropertyName %>" label="<%=GetDescription(em) %>" />
+                      </div>
+                       <%} %>
+                      <div class="col-12">
+                        <q-btn outline v-close-popup color="primary" icon="search" label="搜索" v-on:click="getPageList" />
+                      </div>
+                    </q-card-section>
+                  </q-card>
+                </q-menu>
+                <q-tooltip content-class="bg-black" :offset="[10, 10]">
+                  高级搜索
+                </q-tooltip>
+              </q-btn>
+            </template>
+          </q-input>
+          <!--搜索结束-->
+          <%} %>
         </div>
-        
-        <div class="filter-box">
-            <div class="filter">
-                    <div class="ui  form">
-                        <div class="four fields">
-                            <% if(rowsCount>4){ for (int i = 1; i < 5; i++){ %>
-                            <div class="field">
-                                <input type="text" data-bind="value:searchPara().<%= entityManagerList[i].PropertyName %>" placeholder="<%=GetDescription(entityManagerList[i]) %>" id="<%= entityManagerList[i].PropertyName %>" name="<%= entityManagerList[i].PropertyName %>" class="input_text"   />
-                            </div>
-                            <%} }  else { foreach(EntityMember em in entityManagerList){ %>
-                             <div class="field">
-                                <input type="text" data-bind="value:searchPara().<%= em.PropertyName %>" placeholder="<%=GetDescription(em) %>"  id="<%= em.PropertyName %>" name="<%= em.PropertyName %>" class="input_text"   />
-                             </div>
-                            <%}} %>
-                            <div class="field">
-                                <button class="ui skyblue button" data-bind="click:$root.onSearchClick"><i class="icon search"></i>查询</button>
-                            </div>
-                        </div>
-                    </div>
-            </div>
-            <% if(rowsCount>4){ %>
-            <button id="moreFilterBtn" class="circular ui icon button">
-                <i class="filter icon"></i>
-            </button>
-            <%} %>
-        </div>
-        <% if(rowsCount>4){ %>
-        <div id="moreFilter" class="ui popup transition hidden">
-            <div class="ui  form">
-            <%for (int i = 5; i < rowsCount; i+=2){ %>
-               <div class="two fields">
-                    <div class="field">
-                        <div class="ui fluid labeled input">
-                            <label class="ui label"><%=GetDescription(entityManagerList[i]) %></label>
-                            <input type="text" data-bind="value:searchPara().<%= entityManagerList[i].PropertyName %>"  placeholder="<%=GetDescription(entityManagerList[i]) %>" id="<%= entityManagerList[i].PropertyName %>" name="<%= entityManagerList[i].PropertyName %>" class="input_text"   />
-                        </div>
-                    </div>
-                    <%if((i+1)<rowsCount) {%>
-                    <div class="field">
-                        <div class="ui fluid labeled input">
-                            <label class="ui label"><%=GetDescription(entityManagerList[i+1]) %></label>
-                            <input type="text" data-bind="value:searchPara().<%= entityManagerList[i+1].PropertyName %>" placeholder="<%=GetDescription(entityManagerList[i+1]) %>"  id="<%= entityManagerList[i+1].PropertyName %>" name="<%= entityManagerList[i+1].PropertyName %>" class="input_text"   />
-                        </div>
-                    </div>
-                    <%} %>
-                </div>
-            <%} %>
-             <div class="two fields">
-                <div class="field ">
-                    <div class="ui fluid labeled input">
-                    </div>
-                </div>
-                <div class="field ">
-                    <div class="ui fluid labeled input">
-                        <button class="ui blue button" data-bind="click:$root.onSearchClick"><i class="icon search"></i>查询</button>
-                    </div>
-                </div>
-            </div>
-            </div>
-        </div>
-        <%} %>
-        
-        <div class="table-contener">
-            <div class="head-box no-boder" >
-                <table class="ui table">
-                    <thead>
-                        <tr data-bind="foreach:$root.colModel">
-                            <th data-bind="attr:{width:width }"><span data-bind="html:name"></span></th>
-                        </tr>
-                        @*
-                            如果想绑定html代码，可以将span绑定改成   <div data-bind="html:name"></div>      name可以是html代码，也可以是文本
-                        *@
-                    </thead>
-                </table>
-            </div>
-            <div class="body-box no-boder">
-                <table class="ui body-list selectable table">
-                    <tbody data-bind="foreach: $root.dataList">
-                        <tr>
-                            <td class="left aligned">
-                                <div class="ui checkbox">
-                                    <input type="checkbox" data-bind="checkedValue: Id,attr:{id:'item_'+Id}" />
-                                    <label></label>
-                                </div>
-                            </td>
-                            
-                            <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
-                                if(DescriptionContains(em,"[list]")) { 
-                                %>
-                                   <td><span data-bind="text:<%=em.PropertyName %>"></span></td>    
-                                <%
-                                }
-                           } %>
-                            
-                            <td class="aligned">
-                                <a href="javascript:;" data-bind="attr:{tid:Id},click:$root.onItemEditClick" title="修改">
-								<i class="edit icon"></i>修改
-								</a>
-                                <a href="javascript:;" data-bind="attr:{tid:Id},click:$root.onItemDeleteClick" title="删除">
-								<i class="remove circle icon"></i>删除
-								</a>
-                                <a href="javascript:;" class="ui  pointing dropdown link item" >
-                                    <i class="chevron circle down icon"></i>更多
-                                    <div class="menu transition" tabindex="100" style="left:inherit;right: -25px !important;">
-                                        <div class="item" data-bind="attr:{tid:Id},click:$root.onItemEditClick">
-										<i class="edit icon"></i>修改
-										</div>
-                                         <div class="item" data-bind="attr:{tid:Id},click:$root.onItemDeleteClick">
-										 <i class="remove icon"></i>删除
-										 </div>
-                                    </div>
-                                </a>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div>
-                <div class="foot-bottom no-boder">
-                    @Html.Partial("~/views/Shared/_pager.cshtml", null)
-                </div>
-            </div>
-        </div>
-   @*</div>
-</div>*@
+      </div>
 
-<!--表格 end-->
-@section Script{
-<script type="text/javascript">
-        var rootUrl="/Modules/<%=this.AssemblyName %>/<%= GetTableClassName(SourceTable) %>";
-        var options = {
-            getListUrl: rootUrl+'/<%= GetTableClassName(SourceTable) %>List',
-            //height: 200,
-            rowList: [10, 20, 30],
-            colModel: [
-               { name: '<div class="ui checkbox all-checked"><input type="checkbox" /><label></label></div>', width: '3%' },
-                <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
-                        if(DescriptionContains(em,"[list]")) { 
-                        %>
-               { name: '<%=GetDescription(em) %>', width: '10%' },   
-                        <%
-                        }
-                   } %>
-               { name: '管理', width: '10%' }
-            ],
-            //搜索条件
-            searchPara: {
-            <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
-              if(DescriptionContains(em,"[search]")){
-            %>
-                 <%= em.PropertyName %>: ko.observable(),
-             <% 
-                 } 
-             } %>
-                
-            },
-            initControl: function (viewModel) {
-                //初始化控件
-                //高级查询
-                    $('#moreFilterBtn').popup({
-                        popup: $('#moreFilter'),
-                        on: 'click',
-                        position: 'bottom right'
-                    });
-            },
-            initValidate: function (viewModel) {
-                //初始化搜索验证
-            },
-            initEvents: function (viewModel) {
-                //添加
-                viewModel.onAddClick = function (data, event) {
-                    layer.open({
-                        title: false,
-						closeBtn: false,
-                        area:['800px', '600px'],//如area: ['100%', '100%'] 动画 offset:'rb' 右下加载
-                        type: 2,                        
-                        content: [rootUrl+'/<%= GetTableClassName(SourceTable) %>Add',"no"], //这里content是一个URL，如果你不想让iframe出现滚动条，你还可以content: ['http://sentsin.com', 'no'],
-                        end: function () {
-                            viewModel.flushCurrentPage();
-                        }
-                    });
-                };
-                //修改
-                viewModel.onItemEditClick = function (data, event) {
-                    layer.open({
-                        title: false,
-                        closeBtn: false,
-                        area: ['100%', '100%'],
-                        offset: 'rb',//动画，要可以不要 
-                        type: 2,
-                        content: [rootUrl+'/<%= GetTableClassName(SourceTable) %>Edit?id=' + data.Id, 'no'],
-                        end: function () {
-                            viewModel.flushCurrentPage();
-                        }
-                    });
-                };
-                //批量删除
-                viewModel.onItemDeleteClick = function (data, event) {
-                     var idList = new Array();
-                    //单个或者批量
-                    if (data.Id == undefined) {
-                        $(".body-box div.checkbox input:checked").each(function () {
-                            idList.push($(this).val());
-                        });
-                    } else {
-                        idList.push(data.Id);
-                    }
-                    if (idList.length ==1) {
-                       viewModel.DeleteItem(idList, "你确定删除该数据？");
-                    }
-                    else if(idList.length > 1){
-                        viewModel.DeleteItem(idList, "你确定删除所有勾选数据？");
-                    }
-                    else{
-                     layer.msg("请先选择要删除的数据", { icon: 2, shift: 5 });
-                        return;
-                    }                   
-                };
-                //统一删除方法
-                viewModel.DeleteItem = function (idList, message) {
-                    layer.confirm(message, { icon: 3 }, function (index) {
-                        $.ajax({
-                            url: rootUrl+"/<%= GetTableClassName(SourceTable) %>BatchDelete",
-                            data: { 'idList': idList },
-                            type: "POST",
-                            dataType: 'json',
-                            success: function (result) {
-                                layer.msg(result.Msg, {
-                                    icon: result.Success ? 1 : 2,
-                                    shift: 5
-                                });
-                                layer.close(index);
-                                viewModel.flushCurrentPage();
-                            },
-                            error: function (er) { layer.msg('服务器错误，操作失败！', { icon: 2, shift: 5 }); }
-                        });
-                    });
-                };
-               
-            },
+    </q-toolbar>
+    <q-table :data="listData"
+             :columns="columns"
+             row-key="Id"
+             selection="multiple"
+             table-class="list-table"
+             card-class="list-card main-content  q-ma-md"
+             :pagination.sync="pagination"
+             :selected.sync="selected"
+             :selected-rows-label="getSelectedString"
+             @request="getPageList"
+             :loading="loading"
+             binary-state-sort>
+      <!--自定义多选头部-->
+      <template v-slot:header-selection="scope">
+        <q-checkbox v-model="scope.selected" />
+      </template>
 
-            //必须实现 loadData,在list.js中会自动调用options.loadData(viewModel);，用于初始化
-            loadData: function (viewModel) {
-                this.initControl(viewModel);
-                this.initValidate(viewModel);
-                this.initEvents(viewModel);
+      <!--自定义多选每行-->
+      <template v-slot:body-selection="scope">
+        <q-checkbox v-model="scope.selected" />
+      </template>
+      <!--加载状态-->
+      <template v-slot:loading>
+        <q-inner-loading showing color="primary" />
+      </template>
+      <!--自定义表格区域v-slot:body-cell-[列名]="props"-->
+      <template v-slot:body-cell-tool="props">
+        <q-td :props="props">
+          <div>
+            <q-btn flat dense color="primary" label="修改" icon="edit" @click="onItemEditClick(props)">
+            </q-btn>
+            <q-btn flat dense color="primary" label="删除" icon="delete" @click="onItemDeleteClick(props)">
+            </q-btn>
+          </div>
+
+        </q-td>
+      </template>
+
+      <!--自定义某一个标题单元格：v-slot:header-cell-[列名]="props"    -->
+      <template v-slot:header-cell-tool="props">
+        <q-th :props="props" style="">
+          {{ props.col.label }}
+        </q-th>
+      </template>
+
+      <!--自定义分页区域-->
+      <template v-slot:pagination="scope">
+        <q-btn icon="first_page"
+               color="grey-8"
+               round
+               dense
+               flat
+               :disable="scope.isFirstPage"
+               @click="scope.firstPage" />
+        <q-btn icon="chevron_left"
+               color="grey-8"
+               round
+               dense
+               flat
+               :disable="scope.isFirstPage"
+               @click="scope.prevPage" />
+        <q-pagination flat
+                      unelevated
+                      v-model="scope.pagination.page"
+                      color="secondary"
+                      @input="gotoPage"
+                      :max-pages="6"
+                      :boundary-numbers="true"
+                      :max="scope.pagesNumber" />
+        <q-btn icon="chevron_right"
+               color="grey-8"
+               round
+               dense
+               flat
+               :disable="scope.isLastPage"
+               @click="scope.nextPage" />
+        <q-btn icon="last_page"
+               color="grey-8"
+               round
+               dense
+               flat
+               :disable="scope.isLastPage"
+               @click="scope.lastPage" />
+      </template>
+
+      <!--todo: 自定义无数据区域-->
+      <template v-slot:no-data="{ icon, message, filter }">
+        <div class="full-width row flex-center text-accent q-gutter-sm">
+          <q-icon size="2em" name="sentiment_dissatisfied" />
+          <span>
+            暂无数据... {{ message }}
+          </span>
+          <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+        </div>
+      </template>
+    </q-table>
+    <!--编辑UI-->
+    <q-dialog persistent v-model="editIsShow">
+      <!--子组件的使用：
+            id：传递id值
+            width：宽度，单位和css一样
+            height：高度，单位和css一样
+      -->
+      <<%= GetTableClassName(SourceTable) %>Edit :id="editId" width="800px" height="600px" @exit="onEditClose" />
+    </q-dialog>
+  </div>
+
+</template>
+<script>
+  import <%= GetTableClassName(SourceTable) %>Edit from './<%= GetTableClassName(SourceTable) %>Edit.vue'
+  export default {
+    name: '<%= GetTableClassName(SourceTable) %>List',
+    components: { <%= GetTableClassName(SourceTable) %>Edit },
+    data() {
+      return {
+        // table中已经选择的数据
+        editId: '',
+        rootUrl: 'api/v1/<%=this.AssemblyName %>/<%= GetTableClassName(SourceTable) %>/',
+        editIsShow: false,
+        selected: [],
+        // 是否正在加载服务端数据
+        loading: false,
+        // 搜索条件
+        searchPara: {
+          <% foreach(EntityMember em in entityManagerList){%>
+          <%= em.PropertyName %>:'',
+          <%} %>
+        },
+        pagination: {
+          page: 1,
+          rowsPerPage: 20,
+          rowsNumber: 0
+        },
+        columns: [
+          {
+            // 标识列
+            name: 'Id',
+            // 头部标签
+            label: '序号',
+            // 行对象属性以确定此列的值
+            field: row => row.Id,
+            // （可选）如果我们使用可见列，这个列将始终可见
+            required: true,
+            // （可选）对齐
+            align: 'left',
+            format: val => `${val}`,
+            style: 'width: 3%',
+            classes: '',
+            // （可选）告诉QTable你想要这个列可排序
+            sortable: false
+          },
+          <% foreach(EntityMember em in entityManagerList){%>
+          { name: '<%= em.PropertyName %>', field: '<%= em.PropertyName %>', label: '<%=GetDescription(em) %>', align: 'left', sortable: false },
+          <%} %>
+          { name: 'tool', field: 'Id', label: '操作' }
+        ],
+        listData: []
+      }
+    },
+    methods: {
+      //跳转页面
+      gotoPage(page) {
+        this.pagination.page = page
+        this.getPageList({
+          pagination: this.pagination,
+          filter: undefined
+        })
+      },
+      //获取列表
+      getPageList(props) {
+        var paraList = this.searchPara
+        this.loading = true
+        //是否是插件点击的
+        var hasOptions = (props !== undefined && props !== null && props.pagination !== null && props.pagination !== undefined)
+        //如果插件点击
+        if (hasOptions) {
+          paraList.pageSize = props.pagination.rowsPerPage
+          paraList.pageNumber = props.pagination.page
+        } else {
+          //如果搜索框点击
+          paraList.pageNumber = 1
+          this.pagination.page = 1
+        }
+        //获取列表
+        this.$axios.get(this.rootUrl + 'GetList', {
+          params: paraList
+        })
+          .then((response) => {
+            var responseData = response.data
+            if (responseData.StatusCode === 0) {
+              this.$errorInfo(responseData.Message)
+              return
             }
-        };
-        
-        $(function () {
-            var model = new viewModel(options);
-            model.loadData();
-            ko.applyBindings(model);
-        });
+            // 清除现有数据并添加新数据
+            this.listData = responseData.Result.DataList
+            // 使用适当的值更新RowScont
+            this.pagination.rowsNumber = responseData.TotalCount
+            if (hasOptions) {
+              //更新本地分页对象
+              this.pagination.page = props.pagination.page
+              this.pagination.rowsPerPage = props.pagination.rowsPerPage
+              this.pagination.sortBy = props.pagination.sortBy
+              this.pagination.descending = props.pagination.descending
+            }
+            //装载指示器转向
+            this.loading = false
+            this.selected = []
+          })
+      },
+      //添加
+      onAddClick() {
+        this.editIsShow = true
+        this.editId = ''
+      },
+      //修改
+      onItemEditClick(props) {
+        this.editIsShow = true
+        this.editId = props.row.Id
+      },
+      //删除
+      onItemDeleteClick(props) {
+        var idList = []
+        if (props.row !== undefined) {
+          idList.push(props.row.Id)
+        } else if (this.selected.length > 0) {
+          //批量删除
+          for (var i = 0; i < this.selected.length; i++) {
+            idList.push(this.selected[i].Id)
+          }
+        } else {
+          this.$errorInfo('请选择要删除的数据')
+          return
+        }
+        this.deleteItem(idList, '即将删除数据，确定操作吗?', 'BatchDelete')
+      },
+      //统一删除
+      deleteItem(idList, message, action) {
+        this.$confirm(message)
+          .onOk(() => {
+            // 点击确定按钮事件 提交
+            this.$axios.post(this.rootUrl + action, { idList: idList })
+              .then((response) => {
+                var responseData = response.data
+                var updateStatus = responseData.StatusCode === 1
+                //错误提示
+                if (!updateStatus) {
+                  this.$errorInfo(responseData.Message)
+                  return
+                }
+                //成功刷新
+                this.$succeedInfo(responseData.Message)
+                this.getPageList(null)
+              })
+          }).onCancel(() => {
+            // 点击取消按钮事件
+            return false
+          })
+      },
+      //关闭
+      onEditClose() {
+        this.editIsShow = false
+        this.editId = ''
+        this.getPageList(null)
+      },
+      //选中行数
+      getSelectedString() {
+        return this.selected.length === 0 ? '' : `已选择${this.selected.length}行，一共${this.listData.length}行`
+      }
+    },
+    //载入事件
+    mounted: function () {
+      //首次加载列表
+      this.getPageList({
+        pagination: this.pagination,
+        filter: undefined
+      })
+    },
+    //计算
+    computed: {
+      showToolBbuttons: function () {
+        return this.selected.length > 0
+      },
+      pagesNumber() {
+        return Math.ceil(this.listData.length / this.pagination.rowsPerPage)
+      }
 
-        $load(function () {
-            //更多操作绑定
-            $('.ui.dropdown').dropdown({ on: 'click' });
-        });
- </script>
-    @RegisterHeaderFile("list")
-}
+    }
+  }
+</script>
