@@ -329,9 +329,7 @@ namespace <%= this.AssemblyName %>.Controllers
                         <%}else if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
                 <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.HasValue? editItem.<%=em.PropertyName%>.Value.ToString("yyyy-MM-dd"):string.Empty,
                         <%}else if(em.SystemType.Contains("?")){%>
-                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.HasValue? editItem.<%=em.PropertyName%>.Value.ToString():string.Empty,
-                        <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
-                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>?"是":"否",
+                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.HasValue? editItem.<%=em.PropertyName%>.Value.ToString():string.Empty,                        
                         <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
                 <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.ToString("yyyy-MM-dd HH:mm"),
                         <% }
