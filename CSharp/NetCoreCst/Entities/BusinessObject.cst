@@ -29,6 +29,7 @@ namespace <%= EntitiesNamespace %>
     /// <summary>
     /// <%= ClearNote(SourceTable.Description) %>
     /// </summary>
+    [Table("<%= SourceTable.Name %>")]
     public partial class <%= GetTableClassName(SourceTable) %>  : EntityBase
     {
              

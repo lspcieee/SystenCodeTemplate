@@ -79,9 +79,11 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                                  v-model="searchPara.<%= em.PropertyName %>" label="<%=GetDescription(em) %>" />
                       </div>
                        <%} %>
-                      <div class="col-12">
+                    </q-card-section>
+                     <q-card-section>
+                      <q-item-section>
                         <q-btn outline v-close-popup color="primary" icon="search" label="搜索" v-on:click="getPageList" />
-                      </div>
+                      </q-item-section>
                     </q-card-section>
                   </q-card>
                 </q-menu>

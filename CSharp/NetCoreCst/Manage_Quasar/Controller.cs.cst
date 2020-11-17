@@ -177,6 +177,7 @@ namespace <%= this.AssemblyName %>.Controllers
             string message = Validate(editItem);
             if (!string.IsNullOrEmpty(message))
             {
+                resultData.Message = message;
                 return resultData;
             }                        
             <%= GetTableClassName(SourceTable) %>Service.Add(editItem);            
@@ -234,6 +235,7 @@ namespace <%= this.AssemblyName %>.Controllers
             string message = Validate(editItem);
             if (!string.IsNullOrEmpty(message))
             {
+                resultData.Message = message;
                return resultData;
             }  
             //验证值是否存在
@@ -291,7 +293,7 @@ namespace <%= this.AssemblyName %>.Controllers
                 //逻辑删除字段 修改
                 foreach (var item in batchList)
                 {
-                    item.IsDeleted = true;
+                    item.IsDelete = true;
                 }
                 
                <%= GetTableClassName(SourceTable) %>Service.Update(batchList);
