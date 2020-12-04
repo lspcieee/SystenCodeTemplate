@@ -29,6 +29,9 @@ Type="System.String"  Optional="False"  %>
       "services": [
         {
           "type": "Systen.Framework.Module.ModuleBase,Systen.Framework"
+        },
+        {
+          "type": "<%=this.AssemblyName%>.<%=this.ModuleClassName%>"
         }
       ],
       "instanceScope": "single-instance", //单例生命周期

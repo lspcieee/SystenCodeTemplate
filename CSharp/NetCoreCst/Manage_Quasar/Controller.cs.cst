@@ -113,7 +113,7 @@ namespace <%= this.AssemblyName %>.Controllers
                 <%=em.PropertyName%>Str = dataItem.<%=em.PropertyName%>.HasValue? (dataItem.<%=em.PropertyName%>.Value?"是":"否"):string.Empty,
                         <%}else if(em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
                         <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>,
-                <%=em.PropertyName%>Str = dataItem.<%=em.PropertyName%>.HasValue? dataItem.<%=em.PropertyName%>.Value.ToString("yyyy-MM-dd"):string.Empty,
+                <%=em.PropertyName%>Str = dataItem.<%=em.PropertyName%>.HasValue? dataItem.<%=em.PropertyName%>.Value.ToString("yyyy/MM/dd"):string.Empty,
                         <%}else if(em.SystemType.Contains("?")){%>
                 <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>.HasValue? dataItem.<%=em.PropertyName%>.Value.ToString():string.Empty,
                         <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.Boolean)){%>
@@ -121,7 +121,7 @@ namespace <%= this.AssemblyName %>.Controllers
                 <%=em.PropertyName%>Str = dataItem.<%=em.PropertyName%>?"是":"否",
                         <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
                          <%=em.PropertyName%> = dataItem.<%=em.PropertyName%>,
-                <%=em.PropertyName%>Str = dataItem.<%=em.PropertyName%>.ToString("yyyy-MM-dd HH:mm"),
+                <%=em.PropertyName%>Str = dataItem.<%=em.PropertyName%>.ToString("yyyy/MM/dd HH:mm"),
                         <% }
                         else{%>
                 <%=em.PropertyName%>=dataItem.<%=em.PropertyName%>,
@@ -333,7 +333,7 @@ namespace <%= this.AssemblyName %>.Controllers
                         <%}else if(em.SystemType.Contains("?")){%>
                 <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.HasValue? editItem.<%=em.PropertyName%>.Value.ToString():string.Empty,                        
                         <%}else if(!em.SystemType.Contains("?")&&em.Column.SystemType == typeof(System.DateTime)){%>
-                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.ToString("yyyy-MM-dd HH:mm"),
+                <%=em.PropertyName%> = editItem.<%=em.PropertyName%>.ToString("yyyy/MM/dd HH:mm"),
                         <% }
                         else{%>
                 <%=em.PropertyName%>=editItem.<%=em.PropertyName%>,

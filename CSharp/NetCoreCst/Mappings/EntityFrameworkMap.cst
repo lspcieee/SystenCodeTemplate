@@ -22,14 +22,12 @@ namespace <%= AssemblyName %>.Mapping
 
     public class <%= GetTableClassName(SourceTable) %>Map : BaseEntityTypeConfiguration<<%= GetTableClassName(SourceTable) %>>
     {
-        //fluent API 配置模型 数据注释会替代约定，但会被 Fluent API 配置替代
+        //fluent API 配置模型 数据注释会替代约定，但会被 Fluent API 配置替代  [外键表配置关系，主表无需配置]
         public override void Configure(EntityTypeBuilder<<%= GetTableClassName(SourceTable) %>> builder)
         {
-            //表名
-            builder.ToTable(<%= GetTableClassName(SourceTable) %>.TableName);
-
-            //设置主键
+           //设置 表名 主键
             builder
+                .ToTable(<%= GetTableClassName(SourceTable) %>.TableName)
                 .HasKey(t => t.Id)
                 .HasName("Id");
 
