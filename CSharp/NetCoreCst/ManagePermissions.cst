@@ -45,6 +45,9 @@ namespace <%=this.AssemblyName %>
             {
             <%if(!table.Description.Contains("[noAdd]")){ %>
                 
+                //编辑界面
+                [Operation(Name = "编辑界面", Key = "#<%=tableName%>/RegionManageEdit")]
+                public struct <%=tableName%>Edit { }
                 //获取列表
                 [Operation(Name = "列表查询", Key = "<%=tableName%>/GetList")]
                 public struct GetList { }
