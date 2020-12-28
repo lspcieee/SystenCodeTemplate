@@ -45,28 +45,17 @@ namespace <%=this.AssemblyName %>
             {
             <%if(!table.Description.Contains("[noAdd]")){ %>
                 
-                //编辑界面
-                [Operation(Name = "编辑界面", Key = "#<%=tableName%>/<%=tableName%>Edit")]
-                public struct <%=tableName%>Edit { }
-
-                //获取列表               
-                [Operation(Name = "获取列表", Key = "<%=tableName%>/GetList")]
+                //获取列表
+                [Operation(Name = "列表查询", Key = "<%=tableName%>/GetList")]
                 public struct GetList { }
-                //添加               
-                [Operation(Name = "获取添加结构", Key = "<%=tableName%>/GetDefaultInstance")]
-                public struct GetDefaultInstance { }
-                //添加保存
-                [Operation(Name = "添加保存", Key = "<%=tableName%>/Insert")]
+                //添加
+                [Operation(Name = "添加", Key = "<%=tableName%>/Insert")]
                 public struct Insert { }
                 //修改
-                [Operation(Name = "获取修改结构", Key = "<%=tableName%>/Get")]
-                public struct Get { }
-                //修改保存
-                [Operation(Name = "修改保存", Key = "<%=tableName%>/Update")]
+                [Operation(Name = "修改", Key = "<%=tableName%>/Update")]
                 public struct Update { }
-
-                //批量删除
-                [Operation(Name = "批量删除", Key = "<%=tableName%>/BatchDelete")]
+                //删除
+                [Operation(Name = "删除", Key = "<%=tableName%>/BatchDelete")]
                 public struct BatchDelete { }
 			   <%} %>
             }

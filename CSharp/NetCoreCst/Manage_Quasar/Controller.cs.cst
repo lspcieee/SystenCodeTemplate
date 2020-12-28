@@ -146,6 +146,7 @@ namespace <%= this.AssemblyName %>.Controllers
        }
        //添加
        [HttpGet]
+       [PermissionKey("Insert")]
        public OperationResult GetDefaultInstance(){
             var resultData = new OperationResult()
             {
@@ -165,8 +166,7 @@ namespace <%= this.AssemblyName %>.Controllers
             return resultData;
          }
        //添加保存
-       [HttpPost]
-	    [PermissionKey("GetDefaultInstance")]
+       [HttpPost]	   
        public OperationResult Insert(<%= GetTableClassName(SourceTable) %>  editItem){
             var resultData = new OperationResult()
             {
@@ -193,6 +193,7 @@ namespace <%= this.AssemblyName %>.Controllers
        }
        //修改 View
        [HttpGet]
+       [PermissionKey("Update")]
        public OperationResult Get(long id=0){
             var resultData = new OperationResult()
             {
@@ -219,8 +220,7 @@ namespace <%= this.AssemblyName %>.Controllers
        } 
        
        //修改 保存
-       [HttpPost]
-	    [PermissionKey("Get")]
+       [HttpPost]	    
        public OperationResult Update(<%= GetTableClassName(SourceTable) %>  editItem){
             var resultData = new OperationResult()
             {
