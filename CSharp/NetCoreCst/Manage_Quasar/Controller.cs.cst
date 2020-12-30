@@ -50,8 +50,9 @@ using <%= this.IServiceNamespace %>;
 
 namespace <%= this.AssemblyName %>.Controllers
 {
-    //<%= SourceTable.Description %> 管理
-    [Authorize]
+    //如果需要前台会员身份验证 取消一下注释
+    //[Authorize(AuthenticationSchemes = JwtBearer.JwtMemberScheme)]
+    //<%= SourceTable.Description %> 管理    
     public class <%= GetTableClassName(SourceTable) %>Controller : ApiControllerBase
     {   
         //<%= SourceTable.Description %>操作对象
