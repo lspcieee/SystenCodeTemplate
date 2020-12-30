@@ -40,6 +40,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Systen.Framework.Dao;
 using Systen.Framework.Domain;
 using Systen.Framework.Module;
@@ -50,6 +51,7 @@ using <%= this.IServiceNamespace %>;
 namespace <%= this.AssemblyName %>.Controllers
 {
     //<%= SourceTable.Description %> 管理
+    [Authorize]
     public class <%= GetTableClassName(SourceTable) %>Controller : ApiControllerBase
     {   
         //<%= SourceTable.Description %>操作对象
