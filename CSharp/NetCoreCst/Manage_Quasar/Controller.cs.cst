@@ -176,6 +176,13 @@ namespace <%= this.AssemblyName %>.Controllers
                 StatusCode = OperationResultStatus.Error,
                 Message = "获取数据失败!"
             };
+            CurrentManager currentManager = LoginHelper.GetCurrentManager();
+            if (currentManager == null)
+            {
+                resultData.Message = "登录身份已失效，请重新登录";
+                return resultData;
+            }
+            Manager loginManager = currentManager.Manager;
             //数据验证，统一验证处理 
             string message = Validate(editItem);
             if (!string.IsNullOrEmpty(message))
@@ -213,10 +220,7 @@ namespace <%= this.AssemblyName %>.Controllers
              //xmlData 使用示例
             // Dictionary<string, string> auditStatusList = IocHelper.Resolve<ArticleModule>().XmlDataCenter.GetData("AuditStatusType");
             //editItem.AuditStatusName = auditStatusList[editItem.AuditStatusId.ToString()];
-           resultData.Result = new
-            {
-                <%= GetTableClassName(SourceTable) %> = GetViewDataItem(editItem),
-            };
+           
             resultData.Message = "ok";
             resultData.StatusCode = OperationResultStatus.Success;
             return resultData;
@@ -234,6 +238,12 @@ namespace <%= this.AssemblyName %>.Controllers
             {
                 return resultData;
             }
+            CurrentManager currentManager = LoginHelper.GetCurrentManager();
+            if (currentManager == null)
+            {
+                resultData.Message = "登录身份已失效，请重新登录";
+                return resultData;
+            }
             //校验
             string message = Validate(editItem);
             if (!string.IsNullOrEmpty(message))
@@ -247,16 +257,13 @@ namespace <%= this.AssemblyName %>.Controllers
                 {
                     return resultData;
                 }
+                Manager loginManager = currentManager.Manager;
               <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) {%>
                 editInfo.<%=em.PropertyName%>=editItem.<%=em.PropertyName%>;
                <%} %>
                
              <%= GetTableClassName(SourceTable) %>Service.Update(editInfo);
             
-              resultData.Result = new
-            {
-                <%= GetTableClassName(SourceTable) %> = GetViewDataItem(editItem),
-            };
             resultData.Message = "操作成功，已修改";
             resultData.StatusCode = OperationResultStatus.Success;
             return resultData;
