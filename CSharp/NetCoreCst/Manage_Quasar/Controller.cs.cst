@@ -38,13 +38,13 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
 %>
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using Systen.Framework.Dao;
 using Systen.Framework.Domain;
 using Systen.Framework.Module;
 using Systen.Framework.Module.Menu;
+using Systen.Core.Domain;
+using Systen.Core.Helper;
 using <%= this.EntitiesNamespace %>;
 using <%= this.IServiceNamespace %>;
 
@@ -182,20 +182,17 @@ namespace <%= this.AssemblyName %>.Controllers
                 resultData.Message = "登录身份已失效，请重新登录";
                 return resultData;
             }
-            Manager loginManager = currentManager.Manager;
+            
             //数据验证，统一验证处理 
             string message = Validate(editItem);
             if (!string.IsNullOrEmpty(message))
             {
                 resultData.Message = message;
                 return resultData;
-            }                        
-            <%= GetTableClassName(SourceTable) %>Service.Add(editItem);            
-             resultData.Result = new
-            {
-                <%= GetTableClassName(SourceTable) %> = GetViewDataItem(editItem),
-            };
-
+            }
+            Manager loginManager = currentManager.Manager;
+            
+            <%= GetTableClassName(SourceTable) %>Service.Add(editItem); 
             resultData.Message = "操作成功，已添加";
             resultData.StatusCode = OperationResultStatus.Success;
             return resultData;
@@ -220,7 +217,11 @@ namespace <%= this.AssemblyName %>.Controllers
              //xmlData 使用示例
             // Dictionary<string, string> auditStatusList = IocHelper.Resolve<ArticleModule>().XmlDataCenter.GetData("AuditStatusType");
             //editItem.AuditStatusName = auditStatusList[editItem.AuditStatusId.ToString()];
-           
+                      
+             resultData.Result = new
+            {
+                <%= GetTableClassName(SourceTable) %> = GetViewDataItem(editItem),
+            };
             resultData.Message = "ok";
             resultData.StatusCode = OperationResultStatus.Success;
             return resultData;
