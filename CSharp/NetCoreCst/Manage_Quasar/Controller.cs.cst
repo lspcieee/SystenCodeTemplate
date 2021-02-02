@@ -89,7 +89,8 @@ namespace <%= this.AssemblyName %>.Controllers
             //<%=GetDescription(em) %>
             if (!string.IsNullOrEmpty(<%= ToProperCase(em.PropertyName) %>))
             {
-                 queryable = queryable.Where(dt => dt.<%= em.PropertyName %> == <%= ToProperCase(em.PropertyName) %>.Trim());
+            <%= ToProperCase(em.PropertyName) %>=<%= ToProperCase(em.PropertyName) %>.Trim()
+                 queryable = queryable.Where(dt => dt.<%= em.PropertyName %> == <%= ToProperCase(em.PropertyName) %>);
             }
                 <% 
                 }

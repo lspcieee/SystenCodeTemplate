@@ -45,7 +45,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
           <q-avatar>
             <i class="icon line-user line-font"></i>
           </q-avatar>
-          <q-toolbar-title><%= ClearNote(SourceTable.Description) %>编辑</q-toolbar-title>
+          <q-toolbar-title v-html="title"><%= ClearNote(SourceTable.Description) %>编辑</q-toolbar-title>
           <q-space />
           <q-btn flat round dense v-close-popup>
             <i class="icon line-close line-font"></i>
@@ -196,6 +196,9 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
     computed: {
       isUpdate: function () {
         return (this.id !== undefined && this.id !== '')
+      },
+      title: function () {
+        return (this.id !== undefined && this.id !== '') ? '<%= ClearNote(SourceTable.Description) %>编辑' : '<%= ClearNote(SourceTable.Description) %>添加'
       }
     }
   }
