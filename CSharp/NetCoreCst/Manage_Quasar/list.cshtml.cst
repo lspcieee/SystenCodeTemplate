@@ -63,7 +63,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                    outlined
                    v-model="searchPara.<%= entityManagerList[0].PropertyName %>" label="<%=GetDescription(entityManagerList[0]) %>">
             <template v-slot:append>
-              <q-btn round dense flat icon="search" v-on:click="getPageList" />
+              <q-btn round dense flat icon="search" v-on:click="onSearch" />
             </template>
             
             <template v-slot:after>
@@ -82,7 +82,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                     </q-card-section>
                      <q-card-section>
                       <q-item-section>
-                        <q-btn outline v-close-popup color="primary" icon="search" label="搜索" v-on:click="getPageList" />
+                        <q-btn outline v-close-popup color="primary" icon="search" label="搜索" v-on:click="onSearch" />
                       </q-item-section>
                     </q-card-section>
                   </q-card>
@@ -108,7 +108,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
              :pagination.sync="pagination"
              :selected.sync="selected"
              :selected-rows-label="getSelectedString"
-             @request="getPageList"
+             @request="onTableRequest"
              :loading="loading"
              binary-state-sort>
       <!--自定义多选头部-->
@@ -259,29 +259,14 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
       }
     },
     methods: {
-      //跳转页面
-      gotoPage(page) {
-        this.pagination.page = page
-        this.getPageList({
-          pagination: this.pagination,
-          filter: undefined
-        })
-      },
       //获取列表
       getPageList(props) {
         var paraList = this.searchPara
         this.loading = true
-        //是否是插件点击的
-        var hasOptions = (props !== undefined && props !== null && props.pagination !== null && props.pagination !== undefined)
-        //如果插件点击
-        if (hasOptions) {
+        
           paraList.pageSize = props.pagination.rowsPerPage
           paraList.pageNumber = props.pagination.page
-        } else {
-          //如果搜索框点击
-          paraList.pageNumber = 1
-          this.pagination.page = 1
-        }
+       
         //获取列表
         this.$axios.get(this.rootUrl + 'GetList', {
           params: paraList
@@ -296,13 +281,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             this.listData = responseData.Result.DataList
             // 使用适当的值更新RowScont
             this.pagination.rowsNumber = responseData.TotalCount
-            if (hasOptions) {
-              //更新本地分页对象
-              this.pagination.page = props.pagination.page
-              this.pagination.rowsPerPage = props.pagination.rowsPerPage
-              this.pagination.sortBy = props.pagination.sortBy
-              this.pagination.descending = props.pagination.descending
-            }
+           
             //装载指示器转向
             this.loading = false
             this.selected = []
@@ -350,7 +329,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                 }
                 //成功刷新
                 this.$succeedInfo(responseData.Message)
-                this.getPageList(null)
+                this.refresh()
               })
           }).onCancel(() => {
             // 点击取消按钮事件
@@ -361,7 +340,32 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
       onEditClose() {
         this.editIsShow = false
         this.editId = ''
-        this.getPageList(null)
+        this.refresh()
+      },
+      //跳转页面
+      gotoPage(page) {
+        if (this.pagination.page === page) {
+          return
+        }
+        this.pagination.page = page
+        this.getPageList()
+      },
+      //查询
+      onSearch() {
+        if (this.pagination.page !== 1) {
+          this.pagination.page = 1
+        }
+        this.getPageList()
+      },
+      //上下页 table 更新
+      onTableRequest(props) {
+        this.pagination.page = props.pagination.page
+        this.pagination.rowsPerPage = props.pagination.rowsPerPage
+        this.getPageList()
+      },
+      //关闭刷新页面
+      refresh() {
+       this.getPageList()
       },
       //选中行数
       getSelectedString() {

@@ -89,7 +89,7 @@ namespace <%= this.AssemblyName %>.Controllers
             //<%=GetDescription(em) %>
             if (!string.IsNullOrEmpty(<%= ToProperCase(em.PropertyName) %>))
             {
-            <%= ToProperCase(em.PropertyName) %>=<%= ToProperCase(em.PropertyName) %>.Trim()
+            <%= ToProperCase(em.PropertyName) %>=<%= ToProperCase(em.PropertyName) %>.Trim();
                  queryable = queryable.Where(dt => dt.<%= em.PropertyName %> == <%= ToProperCase(em.PropertyName) %>);
             }
                 <% 
@@ -302,6 +302,12 @@ namespace <%= this.AssemblyName %>.Controllers
             <%} else { %>
                 //逻辑删除
                IList<<%= GetTableClassName(SourceTable) %>> batchList=<%= GetTableClassName(SourceTable) %>Service.GetList(d => idList.Contains(d.Id));
+                if (batchList==null|| batchList.Count<1)
+                {
+                    resultData.Message = "未找到要删除的数据";
+                    return resultData;
+                }
+                
                 //逻辑删除字段 修改
                 foreach (var item in batchList)
                 {
