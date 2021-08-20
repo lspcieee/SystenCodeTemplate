@@ -215,7 +215,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
     data() {
       return {
         // table中已经选择的数据
-        editId: '',
+        editId: 0,
         rootUrl: 'api/v1/<%=this.AssemblyName %>/<%= GetTableClassName(SourceTable) %>/',
         editIsShow: false,
         selected: [],
@@ -260,12 +260,11 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
     },
     methods: {
       //获取列表
-      getPageList(props) {
+      getPageList() {
         var paraList = this.searchPara
         this.loading = true
-        
-          paraList.pageSize = props.pagination.rowsPerPage
-          paraList.pageNumber = props.pagination.page
+         paraList.pageSize = this.pagination.rowsPerPage
+        paraList.pageNumber = this.pagination.page
        
         //获取列表
         this.$axios.get(this.rootUrl + 'GetList', {
@@ -290,7 +289,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
       //添加
       onAddClick() {
         this.editIsShow = true
-        this.editId = ''
+        this.editId = 0
       },
       //修改
       onItemEditClick(props) {
@@ -339,7 +338,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
       //关闭
       onEditClose() {
         this.editIsShow = false
-        this.editId = ''
+        this.editId = 0
         this.refresh()
       },
       //跳转页面
@@ -375,10 +374,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
     //载入事件
     mounted: function () {
       //首次加载列表
-      this.getPageList({
-        pagination: this.pagination,
-        filter: undefined
-      })
+      this.getPageList()
     },
     //计算
     computed: {

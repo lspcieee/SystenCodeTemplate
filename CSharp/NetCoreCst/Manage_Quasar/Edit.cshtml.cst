@@ -116,7 +116,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
         required: ''
       },
       id: {
-        type: String,
+        type: Number,
         required: ''
       }
     },

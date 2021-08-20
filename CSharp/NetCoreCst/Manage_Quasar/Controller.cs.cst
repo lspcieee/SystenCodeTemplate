@@ -36,8 +36,9 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
     
    bool isDelete=entityManager.MembersNoKeyNoVersion.SingleOrDefault(m=>m.PropertyName=="IsDelete")==null;
 %>
-using System.Collections.Generic;
+using System;
 using System.Linq;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Systen.Framework.Dao;
 using Systen.Framework.Domain;
@@ -108,7 +109,7 @@ namespace <%= this.AssemblyName %>.Controllers
                 dataItem =>
                 {
                     dynamic dItem= new {
-					Id=dataItem.Id.ToString(),
+					Id=dataItem.Id,
 			 <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) { 
                     if(!DescriptionContains(em,"[hide]")){%>
                 //<%=GetDescription(em) %>
