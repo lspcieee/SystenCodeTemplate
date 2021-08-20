@@ -110,6 +110,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
              :selected-rows-label="getSelectedString"
              @request="onTableRequest"
              :loading="loading"
+             :rows-per-page-options="[10, 20, 50]"
              binary-state-sort>
       <!--自定义多选头部-->
       <template v-slot:header-selection="scope">
