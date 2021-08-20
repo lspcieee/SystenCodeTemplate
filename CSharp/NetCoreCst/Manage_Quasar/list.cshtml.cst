@@ -146,6 +146,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
 
       <!--自定义分页区域-->
       <template v-slot:pagination="scope">
+       共 {{pagination.rowsNumber}} 条
         <q-btn icon="first_page"
                color="grey-8"
                round
