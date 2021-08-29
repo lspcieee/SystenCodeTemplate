@@ -195,10 +195,10 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
     },
     computed: {
       isUpdate: function () {
-        return (this.id !== undefined && this.id !== '')
+        return (this.id !== undefined && this.id > 0)
       },
       title: function () {
-        return (this.id !== undefined && this.id !== '') ? '<%= ClearNote(SourceTable.Description) %>编辑' : '<%= ClearNote(SourceTable.Description) %>添加'
+        return (this.id !== undefined && this.id > 0) ? '<%= ClearNote(SourceTable.Description) %>编辑' : '<%= ClearNote(SourceTable.Description) %>添加'
       }
     }
   }

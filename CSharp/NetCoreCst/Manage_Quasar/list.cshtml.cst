@@ -128,13 +128,35 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
       <!--自定义表格区域v-slot:body-cell-[列名]="props"-->
       <template v-slot:body-cell-tool="props">
         <q-td :props="props">
-          <div>
             <q-btn flat dense color="primary" label="修改" icon="edit" @click="onItemEditClick(props)">
             </q-btn>
             <q-btn flat dense color="primary" label="删除" icon="delete" @click="onItemDeleteClick(props)">
             </q-btn>
-          </div>
-
+             <q-btn round dense flat color="primary" icon="more_horiz">
+                <q-menu anchor="bottom right" self="top right">
+                  <q-list class="rounded-borders text-primary" style="min-width:150px;">
+                    <q-item clickable @click="onItemEditClick(props)"
+                            v-ripple
+                            v-close-popup>
+                      <q-item-section avatar>
+                        <q-icon name="edit" />
+                      </q-item-section>
+                      <q-item-section>修改</q-item-section>
+                    </q-item>
+                    <q-item clickable @click="onItemDeleteClick(props)"
+                            v-ripple
+                            v-close-popup>
+                      <q-item-section avatar>
+                        <q-icon name="delete" />
+                      </q-item-section>
+                      <q-item-section>删除</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+                <q-tooltip content-class="bg-black" :offset="[10, 10]">
+                  更多操作
+                </q-tooltip>
+              </q-btn>
         </q-td>
       </template>
 
