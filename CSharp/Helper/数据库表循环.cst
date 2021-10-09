@@ -1,0 +1,19 @@
+﻿<%@ Template Language="C#" TargetLanguage="SQL" Description="连接SQL数据库，并读取表结构" Debug="True"%>
+
+<%--调用CodeSmith自带的组件SchemaExplorer，这是一个访问数据库的组件--%>
+
+<%@ Assembly Name="SchemaExplorer" %>
+
+<%@ Import Namespace="SchemaExplorer" %>
+
+<%--定义一个属性，来获得要操作的表。TableSchema取得是表，ViewSchema是视图。--%>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="表" Description="要操作的表" %>
+
+<%--循环读取表的字段结构--%>
+
+<%foreach(ColumnSchema col in SourceTable.Columns) {%>
+
+<%= col.Name %>--<%= col.DataType %>
+
+<%} %>
