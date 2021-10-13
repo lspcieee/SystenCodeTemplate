@@ -65,7 +65,6 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             <template v-slot:append>
               <q-btn round dense flat icon="search" v-on:click="onSearch" />
             </template>
-            
             <template v-slot:after>
               <q-btn round dense flat icon="more_horiz">
                 <q-menu anchor="bottom right" self="top right" :offset="[0, 10]">
@@ -247,9 +246,22 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
         loading: false,
         // 搜索条件
         searchPara: {
-          <% foreach(EntityMember em in entityManagerList){%>
-          <%= em.PropertyName %>:'',
-          <%} %>
+          <% 
+             for(int i=0;i<entityManagerList.Count;i++){
+                var em=entityManagerList[i];
+                 if(i<entityManagerList.Count-1){
+                     //非最后一条，加逗号
+                     %>
+                     <%= em.PropertyName %>:'',
+                     <%
+                 }
+                 else{
+                     //最后一条，不加逗号
+                     %>
+                     <%= em.PropertyName %>:''
+                     <%
+                 }
+          } %>
         },
         pagination: {
           page: 1,
@@ -289,7 +301,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
         this.loading = true
          paraList.pageSize = this.pagination.rowsPerPage
         paraList.pageNumber = this.pagination.page
-       
+
         //获取列表
         this.$axios.get(this.rootUrl + 'GetList', {
           params: paraList
@@ -304,7 +316,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             this.listData = responseData.Result.DataList
             // 使用适当的值更新RowScont
             this.pagination.rowsNumber = responseData.TotalCount
-           
+
             //装载指示器转向
             this.loading = false
             this.selected = []
