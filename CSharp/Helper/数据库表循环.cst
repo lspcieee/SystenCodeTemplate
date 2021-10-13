@@ -12,8 +12,15 @@
 
 <%--循环读取表的字段结构--%>
 
-<%foreach(ColumnSchema col in SourceTable.Columns) {%>
+<%foreach(ColumnSchema col in SourceTable.Columns) {
+    var name=col.Name;
+    var note=col.Description.Replace("[list]","").Replace("[search]","").Replace("[hide]","");
+%>
 
+      <q-item>
+        <q-item-section> <q-input label="<%= col.DataType %>" /></q-item-section>
+      </q-item>
+      
 <%= col.Name %>--<%= col.DataType %>
 
 <%} %>
