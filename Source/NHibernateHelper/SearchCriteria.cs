@@ -91,7 +91,7 @@ namespace NHibernateHelper
 
         /// <summary>
         /// Sets MethodName to default generation: "GetBy{0}{1}{n}"
-        /// </summary>
+        /// </summary> 
         public void SetMethodNameGeneration()
         {
             methodNameGenerationMode = MethodNameGenerationMode.Default;
