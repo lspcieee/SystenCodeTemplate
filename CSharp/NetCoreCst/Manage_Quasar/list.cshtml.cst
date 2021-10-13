@@ -252,13 +252,13 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
                  if(i<entityManagerList.Count-1){
                      //非最后一条，加逗号
                      %>
-                     <%= em.PropertyName %>:'',
+            <%= em.PropertyName %>: '',
                      <%
                  }
                  else{
                      //最后一条，不加逗号
                      %>
-                     <%= em.PropertyName %>:''
+            <%= em.PropertyName %>: ''
                      <%
                  }
           } %>
@@ -286,7 +286,9 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
             // （可选）告诉QTable你想要这个列可排序
             sortable: false
           },
-          <% foreach(EntityMember em in entityManagerList){%>
+          <% 
+         entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m =>m.Column.Description.Contains("[list]")).ToList();
+         foreach(EntityMember em in entityManagerList){%>
           { name: '<%= em.PropertyName %>', field: '<%= em.PropertyName %>', label: '<%=GetDescription(em) %>', align: 'left', sortable: false },
           <%} %>
           { name: 'tool', field: 'Id', label: '操作' }

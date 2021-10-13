@@ -184,7 +184,13 @@ namespace <%= this.AssemblyName %>.Controllers
                 resultData.Message = "登录身份已失效，请重新登录";
                 return resultData;
             }
-            
+            //代码生成备注：隐藏[hide]字段，可能初始化需要赋值
+            <% 
+            List<EntityMember> hideEntityManagerList=entityManager.MembersNoKeyNoVersion.Where(m => m.Column.Description.Contains("[hide]")).ToList();
+            foreach(EntityMember em in hideEntityManagerList) {%>
+            //editItem.<%=em.PropertyName%>="默认值";
+           <%} %>
+           
             //数据验证，统一验证处理 
             string message = Validate(editItem);
             if (!string.IsNullOrEmpty(message))
@@ -255,17 +261,24 @@ namespace <%= this.AssemblyName %>.Controllers
                return resultData;
             }  
             //验证值是否存在
-                <%= GetTableClassName(SourceTable) %>  editInfo=<%= GetTableClassName(SourceTable) %>Service.Get(dt=>dt.Id==editItem.Id);            
-                if (editInfo == null || editInfo.Id < 1)
-                {
-                    return resultData;
-                }
-                Manager loginManager = currentManager.Manager;
-              <% foreach(EntityMember em in entityManager.MembersNoKeyNoVersion) {%>
-                editInfo.<%=em.PropertyName%>=editItem.<%=em.PropertyName%>;
-               <%} %>
-               
-             <%= GetTableClassName(SourceTable) %>Service.Update(editInfo);
+            <%= GetTableClassName(SourceTable) %>  editInfo=<%= GetTableClassName(SourceTable) %>Service.Get(dt=>dt.Id==editItem.Id);            
+            if (editInfo == null || editInfo.Id < 1)
+            {
+                return resultData;
+            }
+            Manager loginManager = currentManager.Manager;
+            <% 
+            List<EntityMember> updateEntityManagerList=entityManager.MembersNoKeyNoVersion.Where(m => !m.Column.Description.Contains("[hide]")).ToList();
+            foreach(EntityMember em in updateEntityManagerList) {%>
+            editInfo.<%=em.PropertyName%>=editItem.<%=em.PropertyName%>;
+           <%} %>
+           //代码生成备注：隐藏[hide]字段，可能需要更新
+            <% 
+            //List<EntityMember> hideEntityManagerList=entityManager.MembersNoKeyNoVersion.Where(m => m.Column.Description.Contains("[hide]")).ToList();
+            foreach(EntityMember em in hideEntityManagerList) {%>
+            //editInfo.<%=em.PropertyName%>=editItem.<%=em.PropertyName%>;
+           <%} %>
+            <%= GetTableClassName(SourceTable) %>Service.Update(editInfo);
             
             resultData.Message = "操作成功，已修改";
             resultData.StatusCode = OperationResultStatus.Success;
