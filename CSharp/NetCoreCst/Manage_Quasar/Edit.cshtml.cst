@@ -43,7 +43,7 @@ List<EntityMember> entityManagerList=entityManager.MembersNoKeyNoVersion.Where(m
       <q-card-section class="edit-card-top">
         <q-toolbar class="absolute-top bg-primary text-white">
           <q-avatar>
-            <i class="icon line-user line-font"></i>
+            <i class="icon line-form line-font"></i>
           </q-avatar>
           <q-toolbar-title v-html="title"><%= ClearNote(SourceTable.Description) %>编辑</q-toolbar-title>
           <q-space />
